@@ -1,16 +1,21 @@
 import { NavLink } from "react-router-dom";
 import logo from "../assets/images/logo.png";
 import { getCart } from "../utils/storage";
+import { useAuth } from "../context/AuthContext";
 
 export default function Header() {
   const cart = getCart();
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  const { user, logout } = useAuth();
+
   return (
     <header style={styles.header}>
       {/* LEFT */}
       <div style={styles.left}>
-        <img src={logo} alt="FoodieShop Logo" style={styles.logo} />
+        <NavLink to="/">
+          <img src={logo} alt="FoodieShop Logo" style={styles.logo} />
+        </NavLink>
       </div>
 
       {/* CENTER */}
@@ -23,19 +28,43 @@ export default function Header() {
           Giỏ hàng ({totalItems})
         </NavLink>
 
-        <NavLink to="/orders" style={navLinkStyle}>
-          Đơn hàng
-        </NavLink>
+        {user && (
+          <NavLink to="/orders" style={navLinkStyle}>
+            Đơn hàng
+          </NavLink>
+        )}
       </nav>
 
       {/* RIGHT */}
       <div style={styles.auth}>
-        <button style={styles.login}>Đăng nhập</button>
-        <button style={styles.register}>Đăng ký</button>
+        {user ? (
+          <div style={styles.dropdown}>
+            <span style={styles.user}>👤 {user.email}</span>
+
+            <div style={styles.dropdownMenu}>
+              <NavLink to="/orders">Đơn hàng</NavLink>
+              <button onClick={logout}>Đăng xuất</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <NavLink to="/login" style={styles.login}>
+              Đăng nhập
+            </NavLink>
+            <NavLink to="/register" style={styles.register}>
+              Đăng ký
+            </NavLink>
+          </>
+        )}
+
+        {totalItems > 0 && (
+          <span style={styles.badge}>{totalItems}</span>
+        )}
       </div>
     </header>
   );
 }
+
 
 /* STYLE CHO NAVLINK (ACTIVE / INACTIVE) */
 const navLinkStyle = ({ isActive }) => ({
@@ -79,14 +108,17 @@ const styles = {
     gap: "10px",
   },
   login: {
+    textDecoration: "none",
     background: "transparent",
     border: "1px solid #ff7a18",
     color: "#ff7a18",
     padding: "6px 12px",
     borderRadius: "6px",
     cursor: "pointer",
+    fontWeight: 500,
   },
   register: {
+    textDecoration: "none",
     background: "#ff7a18",
     border: "none",
     color: "#fff",
@@ -95,4 +127,18 @@ const styles = {
     fontWeight: "bold",
     cursor: "pointer",
   },
+  user: {
+  fontWeight: 500,
+  color: "#333",
+  },
+  logout: {
+    background: "#eee",
+    border: "none",
+    padding: "6px 10px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: 500,
+  },
+
 };
+

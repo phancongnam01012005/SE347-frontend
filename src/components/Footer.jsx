@@ -1,4 +1,3 @@
-// src/components/Footer.jsx
 import "../styles/Footer.css";
 import logo from "../assets/images/logo.png";
 
@@ -6,55 +5,46 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-container">
-        
-        {/* Logo & giới thiệu */}
-        <div className="footer-section">
-          <img src={logo} alt="FodieShop" className="footer-logo" />
-          <p>
-            FodieShop – Nền tảng mua bán đồ ăn tiện lợi, nhanh chóng và an toàn.
+        {/* Cột 1: Logo */}
+        <div className="footer-col">
+          <div className="footer-logo-box">
+            <img src={logo} alt="FodieShop Logo" />
+          </div>
+          <p className="footer-desc">
+            FodieShop – Nơi mua sắm tiện lợi, nhanh chóng và đáng tin cậy.
           </p>
         </div>
 
-        {/* Liên hệ */}
-        <div className="footer-section">
+        {/* Cột 2: Liên hệ */}
+        <div className="footer-col">
           <h4>Liên hệ</h4>
           <p>Email: fodie@gmail.com</p>
           <p>Hotline: 0123 456 789</p>
           <p>Địa chỉ: TP.HCM</p>
         </div>
 
-        {/* Chính sách */}
-        <div className="footer-section">
+        {/* Cột 3: Chính sách */}
+        <div className="footer-col">
           <h4>Chính sách</h4>
           <ul>
-            <li>Chính sách bảo mật</li>
             <li>Chính sách đổi trả</li>
+            <li>Chính sách bảo mật</li>
             <li>Điều khoản sử dụng</li>
           </ul>
         </div>
 
-        {/* Link nhanh */}
-        <div className="footer-section">
-          <h4>Liên kết nhanh</h4>
-          <ul>
-            <li>Trang chủ</li>
-            <li>Sản phẩm</li>
-            <li>Giỏ hàng</li>
-            <li>Đơn hàng</li>
-          </ul>
-        </div>
-
-        {/* Mạng xã hội */}
-        <div className="footer-section">
-          <h4>Theo dõi chúng tôi</h4>
-          <div className="social-icons">
-            <span>🌐 Facebook</span>
-            <span>📷 Instagram</span>
-            <span>▶️ YouTube</span>
+        {/* Cột 4: Mạng xã hội */}
+        <div className="footer-col">
+          <h4>Kết nối với chúng tôi</h4>
+          <div className="social-links">
+            <a href="#">Facebook</a>
+            <a href="#">Instagram</a>
+            <a href="#">Zalo</a>
           </div>
         </div>
       </div>
 
+      {/* Copyright */}
       <div className="footer-bottom">
         © 2025 FodieShop. All rights reserved.
       </div>

@@ -1,57 +1,85 @@
-/* src/components/Footer.css */
-
 .footer {
-  background-color: #1f1f1f;
-  color: #ddd;
-  padding: 40px 0 20px;
-  margin-top: 40px;
+  background-color: #1e1e1e;
+  color: #ccc;
+  padding: 40px 0 0;
+  font-size: 14px;
 }
 
 .footer-container {
   max-width: 1200px;
   margin: auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 30px;
   padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
 }
 
-.footer-section h4 {
-  color: #ff9800;
-  margin-bottom: 12px;
+/* Cột */
+.footer-col h4 {
+  color: #fff;
+  margin-bottom: 15px;
+  font-size: 16px;
 }
 
-.footer-section p,
-.footer-section li {
-  font-size: 14px;
-  line-height: 1.6;
-  cursor: pointer;
+.footer-col p,
+.footer-col li {
+  margin-bottom: 8px;
 }
 
-.footer-section ul {
+.footer-col ul {
   list-style: none;
   padding: 0;
 }
 
-.footer-section li:hover {
-  color: #ff9800;
+/* Logo xử lý nền trắng */
+.footer-logo-box {
+  background: #fff;
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
 }
 
-.footer-logo {
-  width: 120px;
-  margin-bottom: 10px;
-}
-
-.social-icons span {
+.footer-logo-box img {
+  height: 45px;
   display: block;
-  margin-bottom: 6px;
 }
 
-.footer-bottom {
-  text-align: center;
-  margin-top: 30px;
-  border-top: 1px solid #333;
-  padding-top: 15px;
-  font-size: 13px;
+/* Mô tả */
+.footer-desc {
   color: #aaa;
+  line-height: 1.6;
+}
+
+/* Social */
+.social-links a {
+  display: inline-block;
+  margin-right: 12px;
+  color: #ff9800;
+  text-decoration: none;
+}
+
+.social-links a:hover {
+  text-decoration: underline;
+}
+
+/* Footer bottom */
+.footer-bottom {
+  margin-top: 30px;
+  padding: 15px 0;
+  text-align: center;
+  background: #111;
+  color: #888;
+  font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .footer {
+    text-align: center;
+  }
+
+  .social-links a {
+    margin: 0 8px;
+  }
 }
