@@ -39,7 +39,7 @@ export default function Header() {
       <div style={styles.auth}>
         {user ? (
           <div style={styles.dropdown}>
-            <span style={styles.user}>👤 {user.email}</span>
+            <span style={styles.user}>👤 {user.name || user.email}</span>
 
             <div style={styles.dropdownMenu}>
               <NavLink to="/orders">Đơn hàng</NavLink>
