@@ -1,15 +1,14 @@
 import { Outlet, Link } from "react-router-dom";
-
+import Header from "../components/Header";
+import Footer from '../components/Footer';
 export default function MainLayout() {
   return (
     <>
+      <Header/>
       <main>
         <Outlet />
       </main>
-
-      <footer>
-        <p>© 2025 Website bán đồ ăn</p>
-      </footer>
+      <Footer/>
     </>
   );
 }
