@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useCart } from "../context/CartContext";
-
+import api from "../services/api";
 export default function Home() {
   const [products, setProducts] = useState([]);
   const { addToCart } = useCart();
@@ -9,7 +9,7 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/public/product/all");
+        const res = await api.get("http://localhost:8000/public/product/all");
         const mappedProducts = res.data.map((p) => ({
           id: p.productId,
           name: p.productName,
@@ -80,12 +80,12 @@ export default function Home() {
                 padding: "8px 0",
                 borderRadius: 6,
                 border: "none",
-                background: "#000",
+                background: "#ff7a18",
                 color: "#fff",
                 cursor: "pointer",
               }}
             >
-              Thêm vào giỏ 🛒
+              Thêm vào giỏ
             </button>
           </div>
         ))}

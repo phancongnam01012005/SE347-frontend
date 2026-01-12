@@ -1,46 +1,37 @@
-import axios from 'axios';
+import axios from "axios";
+import authService from "./authService";
 
-// Base URL của Backend API
-const API_BASE_URL = 'http://localhost:8001';
-
-// Tạo axios instance
+// Tạo instance axios
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  // withCredentials bỏ đi vì không cần cookies cho JWT auth
+  baseURL: "http://localhost:8000",
+  headers: { "Content-Type": "application/json" },
 });
 
-// Request Interceptor - Tự động thêm JWT token vào header
+// === Request interceptor: attach token tự động ===
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = authService.getToken();
     if (token) {
+      // Nếu đã có token, thêm Authorization header
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response Interceptor - Xử lý lỗi chung
+// === Response interceptor: logout nếu 401 ===
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response, // trả bình thường
   (error) => {
-    // Nếu token hết hạn hoặc không hợp lệ (401)
-    if (error.response?.status === 401) {
-      // Xóa token và user data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // Redirect về trang login
-      window.location.href = '/login';
+    const status = error.response?.status;
+    if (status === 401) {
+      // Token expired / unauthorized → logout
+      authService.logout();
+      // Redirect về login, giữ trang trước nếu muốn
+      window.location.href = "/login";
     }
-    return Promise.reject(error);
+    return Promise.reject(error); // trả về lỗi để component xử lý
   }
 );
 

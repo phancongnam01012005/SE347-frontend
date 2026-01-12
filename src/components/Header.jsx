@@ -1,22 +1,28 @@
 import { NavLink } from "react-router-dom";
 import logo from "../assets/images/logo.png";
-import { getCart } from "../utils/storage";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 export default function Header() {
-  const cart = getCart();
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-
   const { user, logout } = useAuth();
+  const { cartItems, clearCart } = useCart();
+
+  const totalItems = cartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
+
+  const handleLogout = () => {
+    clearCart();
+    logout();
+  };
 
   return (
     <header style={styles.header}>
       {/* LEFT */}
-      <div style={styles.left}>
-        <NavLink to="/">
-          <img src={logo} alt="FoodieShop Logo" style={styles.logo} />
-        </NavLink>
-      </div>
+      <NavLink to="/">
+        <img src={logo} alt="FoodieShop" style={styles.logo} />
+      </NavLink>
 
       {/* CENTER */}
       <nav style={styles.nav}>
@@ -25,27 +31,19 @@ export default function Header() {
         </NavLink>
 
         <NavLink to="/cart" style={navLinkStyle}>
-          Giỏ hàng ({totalItems})
+          Giỏ hàng
+          {totalItems > 0 && (
+            <span style={styles.badge}>{totalItems}</span>
+          )}
         </NavLink>
-
-        {user && (
-          <NavLink to="/orders" style={navLinkStyle}>
-            Đơn hàng
-          </NavLink>
-        )}
       </nav>
 
       {/* RIGHT */}
       <div style={styles.auth}>
         {user ? (
-          <div style={styles.dropdown}>
-            <span style={styles.user}>👤 {user.name || user.email}</span>
-
-            <div style={styles.dropdownMenu}>
-              <NavLink to="/orders">Đơn hàng</NavLink>
-              <button onClick={logout}>Đăng xuất</button>
-            </div>
-          </div>
+          <button onClick={handleLogout} style={styles.logout}>
+            Đăng xuất
+          </button>
         ) : (
           <>
             <NavLink to="/login" style={styles.login}>
@@ -56,28 +54,20 @@ export default function Header() {
             </NavLink>
           </>
         )}
-
-        {totalItems > 0 && (
-          <span style={styles.badge}>{totalItems}</span>
-        )}
       </div>
     </header>
   );
 }
 
-
-/* STYLE CHO NAVLINK (ACTIVE / INACTIVE) */
+/* ACTIVE LINK */
 const navLinkStyle = ({ isActive }) => ({
-  position: "relative",
-  color: isActive ? "#ff7a18" : "#000",
   textDecoration: "none",
   fontWeight: 600,
-  paddingBottom: "4px",
-  transition: "color 0.2s ease",
-  borderBottom: isActive ? "2px solid #ff7a18" : "2px solid transparent",
+  color: isActive ? "#ff7a18" : "#000",
+  position: "relative",
 });
 
-/* STYLE CHUNG */
+/* STYLE */
 const styles = {
   header: {
     position: "sticky",
@@ -86,59 +76,49 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "10px 24px",
-    backgroundColor: "#ffffff",
+    padding: "12px 24px",
+    background: "#fff",
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
   },
-  left: {
-    display: "flex",
-    alignItems: "center",
-  },
   logo: {
-    height: "40px",
-    width: "auto",
-    objectFit: "contain",
+    height: 40,
   },
   nav: {
     display: "flex",
-    gap: "24px",
+    gap: 24,
+    alignItems: "center",
   },
   auth: {
     display: "flex",
-    gap: "10px",
+    gap: 10,
+  },
+  badge: {
+    marginLeft: 6,
+    background: "#ff4d4f",
+    color: "#fff",
+    borderRadius: "999px",
+    padding: "2px 8px",
+    fontSize: 12,
   },
   login: {
-    textDecoration: "none",
-    background: "transparent",
     border: "1px solid #ff7a18",
     color: "#ff7a18",
     padding: "6px 12px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontWeight: 500,
+    borderRadius: 6,
+    textDecoration: "none",
   },
   register: {
-    textDecoration: "none",
     background: "#ff7a18",
-    border: "none",
     color: "#fff",
     padding: "6px 12px",
-    borderRadius: "6px",
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
-  user: {
-  fontWeight: 500,
-  color: "#333",
+    borderRadius: 6,
+    textDecoration: "none",
   },
   logout: {
     background: "#eee",
     border: "none",
-    padding: "6px 10px",
-    borderRadius: "6px",
+    padding: "6px 12px",
+    borderRadius: 6,
     cursor: "pointer",
-    fontWeight: 500,
   },
-
 };
-

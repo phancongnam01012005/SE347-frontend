@@ -8,11 +8,12 @@ export const CartProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  // sync localStorage
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Thêm sản phẩm
+  // ADD
   const addToCart = (product) => {
     setCartItems((prev) => {
       const exist = prev.find((item) => item.id === product.id);
@@ -27,19 +28,25 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  // Xóa sản phẩm
+  // REMOVE
   const removeFromCart = (id) => {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Cập nhật số lượng
+  // UPDATE QTY
   const updateQuantity = (id, quantity) => {
-    if (quantity <= 0) return;
+    if (quantity < 1) return;
     setCartItems((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, quantity } : item
       )
     );
+  };
+
+
+  const clearCart = () => {
+    setCartItems([]);
+    localStorage.removeItem("cart");
   };
 
   const totalPrice = cartItems.reduce(
@@ -54,6 +61,7 @@ export const CartProvider = ({ children }) => {
         addToCart,
         removeFromCart,
         updateQuantity,
+        clearCart,
         totalPrice,
       }}
     >
