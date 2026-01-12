@@ -1,20 +1,59 @@
-import { getOrders } from "../utils/storage";
+import { useEffect, useState } from "react";
+import api from "../services/api";
+import "../styles/OrderHistory.css";
 
 export default function OrderHistory() {
-  const orders = getOrders();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await api.get("/order/order-by-user");
+        setOrders(res.data);
+      } catch (err) {
+        console.error(err);
+        setError("Không thể tải lịch sử đơn hàng");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  if (loading) return <p className="order-loading">Đang tải đơn hàng...</p>;
+  if (error) return <p className="order-error">{error}</p>;
 
   return (
-    <div>
-      <h1>Lịch sử đơn hàng</h1>
+    <div className="order-container">
+      <h1 className="order-title">Lịch sử đơn hàng</h1>
 
-      {orders.length === 0 && <p>Chưa có đơn hàng nào</p>}
+      {orders.length === 0 && (
+        <p className="order-empty">Chưa có đơn hàng nào</p>
+      )}
 
       {orders.map((order) => (
-        <div key={order.id} style={{ border: "1px solid #ccc", margin: 10 }}>
-          <p><b>Mã đơn:</b> {order.id}</p>
-          <p><b>Ngày:</b> {order.createdAt}</p>
-          <p><b>Tổng:</b> {order.total.toLocaleString()} đ</p>
-          <p><b>Trạng thái:</b> {order.status}</p>
+        <div key={order.orderID} className="order-card">
+          <div className="order-header">
+            <span className="order-id">Mã đơn hàng: {order.orderID}</span>
+            <span className={`order-status ${order.status}`}>
+              {order.status}
+            </span>
+          </div>
+
+          <div className="order-body">
+            <p><b>Địa chỉ:</b> {order.shippingAddress}</p>
+            <p><b>Thanh toán:</b> {order.paymentMethod}</p>
+          </div>
+
+          {order.buyer && (
+            <div className="order-footer">
+              <p><b>Người mua:</b> {order.buyer.name}</p>
+              <p><b>Email:</b> {order.buyer.email}</p>
+            </div>
+          )}
         </div>
       ))}
     </div>

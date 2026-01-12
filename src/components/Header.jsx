@@ -36,6 +36,9 @@ export default function Header() {
             <span style={styles.badge}>{totalItems}</span>
           )}
         </NavLink>
+        <NavLink to="/orders" style={navLinkStyle}>
+          Đơn hàng
+        </NavLink>
       </nav>
 
       {/* RIGHT */}
