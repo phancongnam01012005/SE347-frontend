@@ -9,7 +9,7 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await api.get("http://localhost:8000/public/product/all");
+        const res = await api.get("/public/product/all");
         const mappedProducts = res.data.map((p) => ({
           id: p.productId,
           name: p.productName,
