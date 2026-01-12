@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "../styles/OrderHistory.css";
 
@@ -6,6 +7,8 @@ export default function OrderHistory() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -35,23 +38,25 @@ export default function OrderHistory() {
       )}
 
       {orders.map((order) => (
-        <div key={order.orderID} className="order-card">
+        <div
+          key={order.orderID}
+          className="order-card"
+          onClick={() => navigate(`/orders/${order.orderID}`)}
+        >
           <div className="order-header">
-            <span className="order-id">Mã đơn hàng: {order.orderID}</span>
+            <span className="order-id">
+              <p><b>Mã đơn hàng: </b> {order.orderID}</p>
+            </span>
             <span className={`order-status ${order.status}`}>
               {order.status}
             </span>
           </div>
-
-          <div className="order-body">
-            <p><b>Địa chỉ:</b> {order.shippingAddress}</p>
-            <p><b>Thanh toán:</b> {order.paymentMethod}</p>
-          </div>
-
           {order.buyer && (
             <div className="order-footer">
-              <p><b>Người mua:</b> {order.buyer.name}</p>
-              <p><b>Email:</b> {order.buyer.email}</p>
+              <p><b>Địa chỉ:</b> {order.shippingAddress}</p>
+              <p><b>Thanh toán:</b> {order.paymentMethod}</p>
+              {/* <p><b>Người mua:</b> {order.buyer.name}</p>
+              <p><b>Email:</b> {order.buyer.email}</p> */}
             </div>
           )}
         </div>

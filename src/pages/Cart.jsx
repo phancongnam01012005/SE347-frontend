@@ -14,8 +14,7 @@ export default function Cart() {
   if (cartItems.length === 0) {
     return (
       <div style={{ padding: 20 }}>
-        <h2>🛒 Giỏ hàng trống</h2>
-        <p>Thêm sản phẩm vô đi 😅</p>
+        <h1>🛒 Giỏ hàng trống</h1>
       </div>
     );
   }

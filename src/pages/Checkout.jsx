@@ -34,7 +34,6 @@ export default function Checkout() {
     if (cartItems.length === 0) return;
 
     const orderRequest = {
-      userId: user.userId,
       shippingAddress: data.address,
       items: cartItems.map((item) => ({
         productid: item.id,

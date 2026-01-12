@@ -7,7 +7,7 @@ import Checkout from "./pages/Checkout";
 import OrderHistory from "./pages/OrderHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./layouts/MainLayout";
-
+import OrderDetail from "./pages/OrderDetail";
 export default function App() {
   return (
     <Routes>
@@ -44,6 +44,7 @@ export default function App() {
           }
         />
       </Route>
+      <Route path="/orders/:orderId" element={<OrderDetail />} />
     </Routes>
   );
 }
