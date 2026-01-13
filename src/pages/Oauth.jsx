@@ -14,7 +14,7 @@ export default function OAuth2Success() {
             authService.setToken(token); // lưu vào localStorage
             navigate("/");               // redirect về home
         } else {
-            navigate("/login");          // fallback nếu không có token
+            navigate("/");          // fallback nếu không có token
         }
     }, [navigate]);
 

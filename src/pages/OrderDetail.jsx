@@ -9,6 +9,7 @@ export default function OrderDetail() {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [payLoading, setPayLoading] = useState(false); // trạng thái thanh toán
 
   useEffect(() => {
     api
@@ -33,9 +34,31 @@ export default function OrderDetail() {
     0
   );
 
+  // Hàm xử lý thanh toán Momo
+  const handleMomoPayment = async () => {
+    try {
+      // setPayLoading(true);
+      const res = await api.post("/public/api/payment/momo", {
+        orderId,
+        amount: totalPrice,
+      });
+
+      // Momo trả về link thanh toán, redirect user
+      if (res.data && res.data.payUrl) {
+        window.location.href = res.data.payUrl;
+      } else {
+        alert("Không tạo được link thanh toán Momo 😢");
+      }
+    } catch (err) {
+      console.error("Lỗi khi tạo thanh toán Momo:", err);
+      alert("Có lỗi khi thanh toán Momo!");
+    } finally {
+      setPayLoading(false);
+    }
+  };
+
   return (
     <div className="order-detail">
-      {/* 🔙 Nút trở về */}
       <button className="back-btn" onClick={() => navigate(-1)}>
         ← Trở về
       </button>
@@ -48,21 +71,17 @@ export default function OrderDetail() {
             src={item.productDTO.image_url}
             alt={item.productDTO.productName}
           />
-
           <div className="info">
             <h4>{item.productDTO.productName}</h4>
             <p className="shop">{item.productDTO.shopName}</p>
-
             <div className="price-row">
               <span>
-                Giá:{" "}
-                <b>{item.productDTO.price.toLocaleString()} đ</b>
+                Giá: <b>{item.productDTO.price.toLocaleString()} đ</b>
               </span>
               <span>
                 SL: <b>{item.quantity}</b>
               </span>
             </div>
-
             <p className="total">
               Thành tiền:{" "}
               <b>
@@ -75,9 +94,17 @@ export default function OrderDetail() {
 
       <div className="order-summary">
         <h3>
-          Tổng cộng:{" "}
-          <span>{totalPrice.toLocaleString()} đ</span>
+          Tổng cộng: <span>{totalPrice.toLocaleString()} đ</span>
         </h3>
+
+        {/* Nút thanh toán Momo */}
+        <button
+          className="momo-btn"
+          onClick={handleMomoPayment}
+          disabled={payLoading}
+        >
+          {payLoading ? "Đang tạo thanh toán..." : "Thanh toán Momo"}
+        </button>
       </div>
     </div>
   );
