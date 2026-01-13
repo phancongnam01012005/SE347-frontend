@@ -58,6 +58,14 @@ const logout = () => localStorage.removeItem("accessToken");
 // ===== Get token =====
 const getToken = () => localStorage.getItem("accessToken");
 
+// ===== Set token manually (for Google OAuth) =====
+const setToken = (token) => {
+  if (token) localStorage.setItem("accessToken", token);
+};
+
+// ===== Check login =====
+const isLoggedIn = () => !!getToken();
+
 // ===== Get user info from JWT =====
 const getUserFromToken = () => {
   const token = getToken();
@@ -82,5 +90,7 @@ export default {
   register,
   logout,
   getToken,
+  setToken,
+  isLoggedIn,
   getUserFromToken,
 };

@@ -8,6 +8,8 @@ import OrderHistory from "./pages/OrderHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./layouts/MainLayout";
 import OrderDetail from "./pages/OrderDetail";
+import OAuth2Success from "./pages/Oauth";
+
 export default function App() {
   return (
     <Routes>
@@ -15,7 +17,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
+        <Route path="/oauth2/success" element={ <OAuth2Success /> }/>
         {/* PROTECTED ROUTES */}
         <Route
           path="/cart"

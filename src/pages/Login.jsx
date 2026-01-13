@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../styles/Auth.css"; // CSS bạn vừa viết
+import "../styles/Auth.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -23,10 +23,18 @@ export default function Login() {
     }
   };
 
+  // ===== Login với Google OAuth =====
+  const handleGoogleLogin = () => {
+    // Đây là endpoint BE Spring Security redirect tới Google
+    window.location.href = "http://localhost:8000/oauth2/authorization/google";
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-box">
         <h2>Đăng nhập</h2>
+
+        {/* Email/Password Form */}
         <form onSubmit={handleSubmit}>
           <input
             type="email"
@@ -45,9 +53,29 @@ export default function Login() {
           {error && <p style={{ color: "red", fontSize: "14px", textAlign: "center" }}>{error}</p>}
           <button type="submit">Login</button>
         </form>
+
         <div className="auth-link">
           <a href="/forgot-password">Forgot password?</a>
         </div>
+
+        <hr style={{ margin: "20px 0" }} />
+
+        {/* Google Login Button */}
+        <button
+          onClick={handleGoogleLogin}
+          style={{
+            width: "100%",
+            padding: "10px",
+            backgroundColor: "#4285F4",
+            color: "#fff",
+            border: "none",
+            borderRadius: "8px",
+            cursor: "pointer",
+            fontSize: "16px",
+          }}
+        >
+          Login with Google
+        </button>
       </div>
     </div>
   );
