@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState } from "react";
+import { useState } from "react";
 import { Header } from "./components/Header";
 import { HeroSection } from "./components/HeroSection";
 import { CategoryCard } from "./components/CategoryCard";
@@ -12,19 +10,24 @@ import { LoginModal } from "./components/LoginModal";
 import { RegisterModal } from "./components/RegisterModal";
 import { UserProfileModal } from "./components/UserProfileModal";
 import { ProductListPage } from "./components/ProductListPage";
+import { Footer } from "./components/Footer";
+import { AboutSection } from "./components/AboutSection";
+import { ContactSection } from "./components/ContactSection";
+import { PolicySection } from "./components/PolicySection";
+import { TermsSection } from "./components/TermsSection";
 import { categories, products } from "./data/mockData";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 
 export default function App() {
-  // --- States cho Giỏ hàng & Thanh toán ---
+  // --- QUẢN LÝ GIỎ HÀNG ---
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isOrderSuccessOpen, setIsOrderSuccessOpen] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   
-  // --- States cho Người dùng & Auth ---
+  // --- QUẢN LÝ NGƯỜI DÙNG ---
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -32,10 +35,11 @@ export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userOrders, setUserOrders] = useState([]);
   
-  // --- State cho Trang danh sách sản phẩm ---
+  // --- QUẢN LÝ DANH SÁCH SẢN PHẨM ---
   const [isProductListOpen, setIsProductListOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(undefined);
 
-  // --- Logic Giỏ hàng ---
+  // --- LOGIC XỬ LÝ GIỎ HÀNG ---
   const handleAddToCart = (product) => {
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
@@ -43,9 +47,7 @@ export default function App() {
       if (existingItem) {
         toast.success(`Đã tăng số lượng "${product.name}"`, { duration: 2000 });
         return prevItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       } else {
         toast.success(`Đã thêm "${product.name}" vào giỏ hàng`, { duration: 2000 });
@@ -65,14 +67,21 @@ export default function App() {
 
   const handleRemoveItem = (productId) => {
     const item = cartItems.find((i) => i.id === productId);
-    setCartItems((prevItems) => prevItems.filter((i) => i.id !== productId));
-    if (item) toast.error(`Đã xóa "${item.name}" khỏi giỏ hàng`);
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== productId));
+    if (item) {
+      toast.error(`Đã xóa "${item.name}" khỏi giỏ hàng`);
+    }
   };
 
-  // --- Logic Tính toán & Đặt hàng ---
+  // --- LOGIC THANH TOÁN ---
+  const handleCheckout = () => {
+    setIsCartOpen(false);
+    setIsCheckoutOpen(true);
+  };
+
   const calculateTotal = () => {
     const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shippingFee = subtotal >= 100000 ? 0 : 15000;
+    const shippingFee = subtotal >= 100000 || subtotal === 0 ? 0 : 15000;
     const discount = subtotal >= 200000 ? 20000 : 0;
     return subtotal + shippingFee - discount;
   };
@@ -94,14 +103,16 @@ export default function App() {
       }))
     };
     
-    if (isLoggedIn) setUserOrders(prev => [newOrder, ...prev]);
+    if (isLoggedIn) {
+      setUserOrders(prev => [newOrder, ...prev]);
+    }
 
     setCartItems([]);
     setIsCheckoutOpen(false);
     setIsOrderSuccessOpen(true);
   };
-
-  // --- Logic Auth (Mock API) ---
+  
+  // --- LOGIC TÀI KHOẢN ---
   const handleLogin = (email, password) => {
     const mockUser = {
       id: '1',
@@ -109,24 +120,24 @@ export default function App() {
       email: email,
       phone: '0123456789',
       addresses: [
-        { id: '1', label: 'Nhà riêng', address: '123 Đường ABC, Quận 1, TP.HCM', isDefault: true },
-        { id: '2', label: 'Văn phòng', address: '456 Đường XYZ, Quận 3, TP.HCM', isDefault: false }
+        { id: '1', label: 'Nhà riêng', address: '123 Đường ABC, Quận 1, TP.HCM', isDefault: true }
       ]
     };
+    
     setCurrentUser(mockUser);
     setIsLoggedIn(true);
     setIsLoginOpen(false);
     toast.success(`Chào mừng ${mockUser.name}!`);
   };
-
+  
   const handleRegister = (name, email, phone, password) => {
     const newUser = { id: Date.now().toString(), name, email, phone, addresses: [] };
     setCurrentUser(newUser);
     setIsLoggedIn(true);
     setIsRegisterOpen(false);
-    toast.success(`Đăng ký thành công!`);
+    toast.success(`Đăng ký thành công! Chào mừng ${name}!`);
   };
-
+  
   const handleLogout = () => {
     setCurrentUser(null);
     setIsLoggedIn(false);
@@ -134,7 +145,7 @@ export default function App() {
     setIsProfileOpen(false);
     toast.success('Đã đăng xuất thành công');
   };
-
+  
   const handleUpdateProfile = (updatedUser) => {
     if (currentUser) {
       setCurrentUser({ ...currentUser, ...updatedUser });
@@ -161,23 +172,30 @@ export default function App() {
 
       <HeroSection />
 
-      {/* Categories */}
+      {/* Danh mục */}
       <section className="max-w-7xl mx-auto px-4 py-8">
-        <h2 className="mb-6 text-2xl font-bold">Danh mục</h2>
-        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+        <h2 className="text-2xl font-bold mb-6">Danh mục</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
           {categories.map((category, index) => (
-            <div key={index} onClick={() => setIsProductListOpen(true)} className="cursor-pointer">
+            <div 
+              key={index} 
+              onClick={() => {
+                setSelectedCategory(category.name);
+                setIsProductListOpen(true);
+              }} 
+              className="cursor-pointer transition-transform hover:scale-105"
+            >
               <CategoryCard {...category} />
             </div>
           ))}
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Món ăn nổi bật */}
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Món ăn nổi bật</h2>
-          <button className="text-[#EE4D2D] hover:underline" onClick={() => setIsProductListOpen(true)}>
+          <button className="text-[#EE4D2D] hover:underline text-sm font-medium" onClick={() => setIsProductListOpen(true)}>
             Xem tất cả
           </button>
         </div>
@@ -188,50 +206,51 @@ export default function App() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-muted border-t mt-12">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="mb-4 font-bold text-[#EE4D2D] text-xl">FodieShop</h3>
-              <p className="text-sm text-muted-foreground">Giao đồ ăn nhanh chóng, đa dạng từ các nhà hàng uy tín.</p>
-            </div>
-            <div>
-              <h4 className="mb-4 font-semibold">Về chúng tôi</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Giới thiệu</a></li>
-                <li><a href="#" className="hover:text-foreground">Tuyển dụng</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="mb-4 font-semibold">Hỗ trợ</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Trung tâm trợ giúp</a></li>
-                <li><a href="#" className="hover:text-foreground">Chính sách bảo mật</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="mb-4 font-semibold">Liên hệ</h4>
-              <p className="text-sm text-muted-foreground">Hotline: 1900-xxxx</p>
-              <p className="text-sm text-muted-foreground">Email: support@shopeefood.vn</p>
-            </div>
-          </div>
-          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            © 2026 ShopeeFood. Tất cả quyền được bảo lưu.
+      {/* Banner Khuyến mãi */}
+      <section className="max-w-7xl mx-auto px-4 py-8">
+        <div className="bg-gradient-to-r from-orange-400 to-[#EE4D2D] rounded-2xl p-8 md:p-12 text-white shadow-lg">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-bold mb-4">Ưu đãi đặc biệt hôm nay!</h2>
+            <p className="text-white/90 mb-6 text-lg">Giảm ngay 50.000đ cho đơn hàng từ 200.000đ. Freeship toàn bộ đơn hàng!</p>
+            <button className="bg-white text-[#EE4D2D] px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors shadow-md" onClick={() => setIsProductListOpen(true)}>
+              Đặt ngay
+            </button>
           </div>
         </div>
-      </footer>
+      </section>
 
-      {/* Các Modals quản lý trạng thái */}
+      {/* Danh sách món ăn trang chủ */}
+      <section className="max-w-7xl mx-auto px-4 py-8 pb-16">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Tất cả món ăn</h2>
+          <button className="text-[#EE4D2D] hover:underline text-sm font-medium" onClick={() => setIsProductListOpen(true)}>
+            Xem tất cả với bộ lọc
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <ProductCard key={`all-${product.id}`} product={product} onAddToCart={handleAddToCart} />
+          ))}
+        </div>
+      </section>
+
+      {/* Các Section thông tin */}
+      <AboutSection />
+      <ContactSection />
+      <PolicySection />
+      <TermsSection />
+
+      <Footer />
+
+      {/* --- CÁC THÀNH PHẦN MODAL & OVERLAYS --- */}
       <ShoppingCart
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
-        onCheckout={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }}
+        onCheckout={handleCheckout}
       />
-
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
@@ -239,29 +258,23 @@ export default function App() {
         total={calculateTotal()}
         onConfirmOrder={handleConfirmOrder}
       />
-
       <OrderSuccessModal
         isOpen={isOrderSuccessOpen}
         onClose={() => setIsOrderSuccessOpen(false)}
         orderNumber={orderNumber}
       />
-
-      <Toaster position="top-center" richColors />
-      
       <LoginModal
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         onLogin={handleLogin}
         onSwitchToRegister={() => { setIsLoginOpen(false); setIsRegisterOpen(true); }}
       />
-      
       <RegisterModal
         isOpen={isRegisterOpen}
         onClose={() => setIsRegisterOpen(false)}
         onRegister={handleRegister}
         onSwitchToLogin={() => { setIsRegisterOpen(false); setIsLoginOpen(true); }}
       />
-      
       {currentUser && (
         <UserProfileModal
           isOpen={isProfileOpen}
@@ -272,13 +285,23 @@ export default function App() {
           onLogout={handleLogout}
         />
       )}
-      
       <ProductListPage
         isOpen={isProductListOpen}
-        onClose={() => setIsProductListOpen(false)}
+        onClose={() => { setIsProductListOpen(false); setSelectedCategory(undefined); }}
         products={products}
         onAddToCart={handleAddToCart}
+        cartItemsCount={cartItemsCount}
+        onCartClick={() => setIsCartOpen(true)}
+        isLoggedIn={isLoggedIn}
+        userName={currentUser?.name}
+        userAvatar={currentUser?.avatar}
+        onLoginClick={() => setIsLoginOpen(true)}
+        onRegisterClick={() => setIsRegisterOpen(true)}
+        onProfileClick={() => setIsProfileOpen(true)}
+        onLogout={handleLogout}
+        initialCategory={selectedCategory}
       />
+      <Toaster position="top-center" richColors />
     </div>
   );
 }

@@ -1,7 +1,5 @@
-"use client";
-
 import React from 'react';
-import { Search, ShoppingCart, MapPin, User, Menu, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { Search, ShoppingCart, MapPin, User, LogIn, UserPlus, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -14,21 +12,8 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
-/**
- * Header Component
- * @param {Object} props
- * @param {number} props.cartItemsCount - Số lượng mặt hàng trong giỏ
- * @param {Function} props.onCartClick - Xử lý khi click vào giỏ hàng
- * @param {boolean} props.isLoggedIn - Trạng thái đăng nhập
- * @param {string} props.userName - Tên người dùng
- * @param {string} props.userAvatar - URL ảnh đại diện
- * @param {Function} props.onLoginClick - Mở modal đăng nhập
- * @param {Function} props.onRegisterClick - Mở modal đăng ký
- * @param {Function} props.onProfileClick - Mở trang cá nhân/đơn hàng
- * @param {Function} props.onLogout - Xử lý đăng xuất
- */
 export function Header({ 
-  cartItemsCount = 0, 
+  cartItemsCount, 
   onCartClick, 
   isLoggedIn, 
   userName,
@@ -36,11 +21,12 @@ export function Header({
   onLoginClick,
   onRegisterClick,
   onProfileClick,
-  onLogout
+  onLogout,
+  onCategoryClick
 }) {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
-      {/* Top Bar - Dải màu cam phía trên */}
+      {/* Top Bar */}
       <div className="bg-[#EE4D2D] text-white py-2 px-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
@@ -48,20 +34,20 @@ export function Header({
             <span>Giao hàng đến: <strong>Quận 1, TP.HCM</strong></span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="hover:opacity-80 transition-opacity">Trợ giúp</button>
-            <button className="hover:opacity-80 transition-opacity">Khuyến mãi</button>
+            <button className="hover:opacity-80">Trợ giúp</button>
+            <button className="hover:opacity-80">Khuyến mãi</button>
           </div>
         </div>
       </div>
 
-      {/* Main Header - Khu vực Logo, Tìm kiếm và User */}
+      {/* Main Header */}
       <div className="py-4 px-4">
         <div className="max-w-7xl mx-auto flex items-center gap-6">
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer">
-            <div className="text-2xl font-bold text-[#EE4D2D]">
+          <div className="flex items-center gap-2">
+            <a href="/" className="text-2xl text-[#EE4D2D] font-bold">
               <h1>FodieShop</h1>
-            </div>
+            </a>
           </div>
 
           {/* Search Bar */}
@@ -71,7 +57,7 @@ export function Header({
               <Input
                 type="text"
                 placeholder="Tìm kiếm món ăn, đồ uống..."
-                className="pl-10 pr-4 py-6 w-full border-2 border-[#EE4D2D]/20 focus:border-[#EE4D2D] rounded-md transition-all"
+                className="pl-10 pr-4 py-6 w-full border-2 border-[#EE4D2D]/20 focus:border-[#EE4D2D] rounded-md shadow-none focus-visible:ring-0"
               />
             </div>
           </div>
@@ -81,24 +67,24 @@ export function Header({
             {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 gap-2 hover:bg-muted">
-                    <Avatar className="h-8 w-8 border border-border">
-                      <AvatarImage src={userAvatar} alt={userName} />
+                  <Button variant="ghost" className="relative h-10 gap-2 focus-visible:ring-0">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={userAvatar} />
                       <AvatarFallback className="bg-[#EE4D2D] text-white">
-                        {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                        {userName?.charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:inline-block font-medium">{userName}</span>
+                    <span className="hidden md:inline-block">{userName}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" onClick={onProfileClick}>
+                  <DropdownMenuItem onClick={onProfileClick} className="cursor-pointer">
                     <User className="w-4 h-4 mr-2" />
                     Thông tin cá nhân
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer" onClick={onProfileClick}>
+                  <DropdownMenuItem onClick={onProfileClick} className="cursor-pointer">
                     <ShoppingCart className="w-4 h-4 mr-2" />
                     Đơn hàng của tôi
                   </DropdownMenuItem>
@@ -107,10 +93,7 @@ export function Header({
                     Địa chỉ giao hàng
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={onLogout} 
-                    className="text-red-600 cursor-pointer focus:bg-red-50 focus:text-red-600"
-                  >
+                  <DropdownMenuItem onClick={onLogout} className="text-red-600 cursor-pointer">
                     <LogOut className="w-4 h-4 mr-2" />
                     Đăng xuất
                   </DropdownMenuItem>
@@ -128,24 +111,22 @@ export function Header({
                 </Button>
                 <Button 
                   onClick={onRegisterClick}
-                  className="gap-2 bg-[#EE4D2D] hover:bg-[#EE4D2D]/90 text-white border-none shadow-sm"
+                  className="gap-2 bg-[#EE4D2D] hover:bg-[#EE4D2D]/90 text-white"
                 >
                   <UserPlus className="w-4 h-4" />
                   <span className="hidden sm:inline-block">Đăng ký</span>
                 </Button>
               </div>
             )}
-
-            {/* Cart Button */}
             <Button 
               variant="ghost" 
               size="icon" 
-              className="relative hover:bg-muted"
+              className="relative hover:bg-gray-100"
               onClick={onCartClick}
             >
-              <ShoppingCart className="w-6 h-6 text-gray-700" />
+              <ShoppingCart className="w-6 h-6" />
               {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#EE4D2D] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+                <span className="absolute -top-1 -right-1 bg-[#EE4D2D] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                   {cartItemsCount}
                 </span>
               )}
@@ -154,30 +135,21 @@ export function Header({
         </div>
       </div>
 
-      {/* Categories Navigation - Thanh danh mục phụ */}
-      <div className="border-t border-border bg-gray-50/50">
+      {/* Categories Navigation */}
+      <div className="border-t border-border">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center gap-6 text-sm overflow-x-auto no-scrollbar">
-            <CategoryButton label="Tất cả" active />
-            <CategoryButton label="Đồ ăn vặt" />
-            <CategoryButton label="Trà sữa" />
-            <CategoryButton label="Cơm - Phở - Bún" />
-            <CategoryButton label="Đồ uống" />
-            <CategoryButton label="Bánh ngọt" />
-            <CategoryButton label="Fast Food" />
-            <CategoryButton label="Ăn sáng" />
+            <button className="whitespace-nowrap hover:text-[#EE4D2D] font-medium transition-colors" onClick={onCategoryClick}>Tất cả</button>
+            <button className="whitespace-nowrap hover:text-[#EE4D2D] transition-colors">Đồ ăn vặt</button>
+            <button className="whitespace-nowrap hover:text-[#EE4D2D] transition-colors">Trà sữa</button>
+            <button className="whitespace-nowrap hover:text-[#EE4D2D] transition-colors">Cơm - Phở - Bún</button>
+            <button className="whitespace-nowrap hover:text-[#EE4D2D] transition-colors">Đồ uống</button>
+            <button className="whitespace-nowrap hover:text-[#EE4D2D] transition-colors">Bánh ngọt</button>
+            <button className="whitespace-nowrap hover:text-[#EE4D2D] transition-colors">Fast Food</button>
+            <button className="whitespace-nowrap hover:text-[#EE4D2D] transition-colors">Ăn sáng</button>
           </div>
         </div>
       </div>
     </header>
-  );
-}
-
-// Helper component cho các nút danh mục
-function CategoryButton({ label, active = false }) {
-  return (
-    <button className={`whitespace-nowrap transition-colors hover:text-[#EE4D2D] ${active ? 'text-[#EE4D2D] font-bold' : 'text-muted-foreground'}`}>
-      {label}
-    </button>
   );
 }

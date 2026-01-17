@@ -9,7 +9,6 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Bạn có thể đổi bg-primary thành bg-[#EE4D2D] để chuẩn màu ShopeeFood
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
@@ -35,22 +34,18 @@ const buttonVariants = cva(
   },
 );
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}) {
+const Button = React.forwardRef(({ className, variant, size, asChild = false, ...props }, ref) => {
   const Comp = asChild ? Slot : "button";
 
   return (
     <Comp
+      ref={ref}
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
   );
-}
+});
+Button.displayName = "Button";
 
 export { Button, buttonVariants };

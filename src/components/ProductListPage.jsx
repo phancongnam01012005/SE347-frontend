@@ -1,8 +1,8 @@
-"use client";
-
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { X, SlidersHorizontal } from 'lucide-react';
 import { ProductCard } from './ProductCard';
+import { Header } from './Header';
+import { Footer } from './Footer';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
@@ -24,31 +24,32 @@ import {
   SheetTrigger,
 } from './ui/sheet';
 
-/**
- * ProductListPage Component
- * @param {Object} props
- * @param {boolean} props.isOpen - Trạng thái hiển thị trang danh sách
- * @param {Array} props.products - Toàn bộ danh sách sản phẩm gốc
- * @param {Function} props.onAddToCart - Hàm xử lý thêm vào giỏ hàng
- * @param {Function} props.onClose - Hàm đóng trang danh sách
- */
 export function ProductListPage({
   isOpen,
   products = [],
   onAddToCart,
   onClose,
+  cartItemsCount,
+  onCartClick,
+  isLoggedIn,
+  userName,
+  userAvatar,
+  onLoginClick,
+  onRegisterClick,
+  onProfileClick,
+  onLogout,
 }) {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 300000]);
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [sortBy, setSortBy] = useState('popular');
 
-  // Lấy danh sách các danh mục duy nhất từ sản phẩm
+  // Lấy danh sách danh mục duy nhất từ sản phẩm
   const categories = useMemo(() => {
-    return Array.from(new Set(products.map(p => p.category)));
+    return Array.from(new Set(products.map((p) => p.category)));
   }, [products]);
 
-  // Logic Lọc và Sắp xếp sản phẩm
+  // Lọc và sắp xếp sản phẩm
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
@@ -64,7 +65,7 @@ export function ProductListPage({
       (p) => p.price >= priceRange[0] && p.price <= priceRange[1]
     );
 
-    // Lọc theo đánh giá (rating)
+    // Lọc theo đánh giá
     if (selectedRatings.length > 0) {
       filtered = filtered.filter((p) => {
         const productRating = Math.floor(p.rating);
@@ -121,11 +122,11 @@ export function ProductListPage({
     priceRange[0] !== 0 ||
     priceRange[1] !== 300000;
 
-  // Component phụ cho phần giao diện bộ lọc (dùng chung cho Desktop và Mobile)
   const FilterSection = () => (
     <div className="space-y-6">
+      {/* Lọc danh mục */}
       <div>
-        <h3 className="mb-4 font-semibold">Danh mục</h3>
+        <h3 className="mb-4 font-semibold text-foreground">Danh mục</h3>
         <div className="space-y-3">
           {categories.map((category) => (
             <div key={category} className="flex items-center space-x-2">
@@ -136,7 +137,7 @@ export function ProductListPage({
               />
               <Label
                 htmlFor={`category-${category}`}
-                className="text-sm cursor-pointer"
+                className="text-sm cursor-pointer font-normal"
               >
                 {category}
               </Label>
@@ -145,8 +146,9 @@ export function ProductListPage({
         </div>
       </div>
 
+      {/* Lọc khoảng giá */}
       <div>
-        <h3 className="mb-4 font-semibold">Khoảng giá</h3>
+        <h3 className="mb-4 font-semibold text-foreground">Khoảng giá</h3>
         <div className="space-y-4">
           <Slider
             value={priceRange}
@@ -163,8 +165,9 @@ export function ProductListPage({
         </div>
       </div>
 
+      {/* Lọc đánh giá */}
       <div>
-        <h3 className="mb-4 font-semibold">Đánh giá</h3>
+        <h3 className="mb-4 font-semibold text-foreground">Đánh giá</h3>
         <div className="space-y-3">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center space-x-2">
@@ -175,7 +178,7 @@ export function ProductListPage({
               />
               <Label
                 htmlFor={`rating-${rating}`}
-                className="text-sm cursor-pointer flex items-center gap-1"
+                className="text-sm cursor-pointer flex items-center gap-1 font-normal"
               >
                 {rating} sao trở lên
               </Label>
@@ -184,47 +187,66 @@ export function ProductListPage({
         </div>
       </div>
 
+      {/* Nút xóa bộ lọc */}
       {hasActiveFilters && (
         <Button
           variant="outline"
           onClick={clearFilters}
-          className="w-full text-red-500 hover:text-red-600"
+          className="w-full border-[#EE4D2D] text-[#EE4D2D] hover:bg-[#EE4D2D]/10"
         >
-          Xóa tất cả bộ lọc
+          Xóa bộ lọc
         </Button>
       )}
     </div>
   );
-  
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] bg-background overflow-y-auto">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold mb-1 text-[#EE4D2D]">Khám phá món ăn</h1>
-            <p className="text-sm text-muted-foreground">
-              Tìm thấy {filteredProducts.length} món ăn phù hợp
-            </p>
+    <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+      <Header
+        cartItemsCount={cartItemsCount}
+        onCartClick={onCartClick}
+        isLoggedIn={isLoggedIn}
+        userName={userName}
+        userAvatar={userAvatar}
+        onLoginClick={onLoginClick}
+        onRegisterClick={onRegisterClick}
+        onProfileClick={onProfileClick}
+        onLogout={onLogout}
+        onCategoryClick={onClose}
+      />
+
+      {/* Tiêu đề trang */}
+      <div className="bg-white border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Danh sách món ăn</h1>
+              <p className="text-sm text-muted-foreground">
+                Tìm thấy {filteredProducts.length} món ăn phù hợp
+              </p>
+            </div>
+            <Button variant="ghost" onClick={onClose} className="hover:bg-gray-100">
+              <X className="w-4 h-4 mr-2" />
+              Đóng
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
-            <X className="w-6 h-6" />
-          </Button>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex gap-8">
-          {/* Sidebar Filter - Chỉ hiển thị trên Desktop (lg) */}
+          {/* Bộ lọc bên trái - Desktop */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24 bg-card rounded-xl border border-border p-6 shadow-sm">
+            <div className="sticky top-24 bg-white rounded-xl border border-border p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold">Bộ lọc</h2>
                 {hasActiveFilters && (
-                  <Badge className="bg-[#EE4D2D]">
-                    {selectedCategories.length + selectedRatings.length + (priceRange[0] !== 0 || priceRange[1] !== 300000 ? 1 : 0)}
+                  <Badge variant="secondary" className="bg-[#EE4D2D]/10 text-[#EE4D2D]">
+                    {selectedCategories.length +
+                      selectedRatings.length +
+                      (priceRange[0] !== 0 || priceRange[1] !== 300000 ? 1 : 0)}
                   </Badge>
                 )}
               </div>
@@ -232,57 +254,97 @@ export function ProductListPage({
             </div>
           </aside>
 
-          {/* Main Area */}
+          {/* Nội dung chính */}
           <div className="flex-1">
-            {/* Toolbar: Sắp xếp & Nút lọc mobile */}
-            <div className="flex items-center justify-between mb-6 gap-4">
+            {/* Thanh công cụ */}
+            <div className="flex items-center justify-between mb-6">
+              {/* Nút lọc Mobile */}
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" className="lg:hidden gap-2">
                     <SlidersHorizontal className="w-4 h-4" />
-                    Lọc món ăn
+                    Bộ lọc
+                    {hasActiveFilters && (
+                      <Badge variant="secondary" className="ml-1 h-5 px-1 bg-[#EE4D2D] text-white">
+                        {selectedCategories.length +
+                          selectedRatings.length +
+                          (priceRange[0] !== 0 || priceRange[1] !== 300000 ? 1 : 0)}
+                      </Badge>
+                    )}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[300px] overflow-y-auto">
-                  <SheetHeader className="text-left">
-                    <SheetTitle>Bộ lọc tìm kiếm</SheetTitle>
-                    <SheetDescription>Tối ưu lựa chọn món ăn của bạn</SheetDescription>
+                <SheetContent side="left" className="w-80 overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle>Bộ lọc</SheetTitle>
+                    <SheetDescription>
+                      Lọc món ăn theo danh mục, giá và đánh giá
+                    </SheetDescription>
                   </SheetHeader>
-                  <div className="mt-8">
+                  <div className="mt-6">
                     <FilterSection />
                   </div>
                 </SheetContent>
               </Sheet>
 
+              {/* Sắp xếp */}
               <div className="flex items-center gap-2 ml-auto">
-                <span className="text-sm text-muted-foreground hidden sm:inline">Sắp xếp theo:</span>
+                <span className="text-sm text-muted-foreground hidden sm:inline">
+                  Sắp xếp:
+                </span>
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[160px] sm:w-[180px]">
-                    <SelectValue />
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Sắp xếp theo" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="popular">Phổ biến nhất</SelectItem>
                     <SelectItem value="rating">Đánh giá cao</SelectItem>
-                    <SelectItem value="price-asc">Giá: Thấp đến Cao</SelectItem>
-                    <SelectItem value="price-desc">Giá: Cao đến Thấp</SelectItem>
+                    <SelectItem value="price-asc">Giá tăng dần</SelectItem>
+                    <SelectItem value="price-desc">Giá giảm dần</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {/* Tags lọc đang hoạt động */}
+            {/* Tags bộ lọc đang hoạt động */}
             {hasActiveFilters && (
               <div className="flex flex-wrap items-center gap-2 mb-6">
-                {selectedCategories.map((cat) => (
-                  <Badge key={cat} variant="secondary" className="px-3 py-1 gap-1">
-                    {cat} <X className="w-3 h-3 cursor-pointer" onClick={() => toggleCategory(cat)} />
+                <span className="text-sm text-muted-foreground">Đang lọc:</span>
+                {selectedCategories.map((category) => (
+                  <Badge
+                    key={category}
+                    variant="secondary"
+                    className="gap-1 cursor-pointer pr-1"
+                    onClick={() => toggleCategory(category)}
+                  >
+                    {category}
+                    <X className="w-3 h-3 opacity-50 hover:opacity-100" />
                   </Badge>
                 ))}
-                {/* ... tương tự cho ratings và price ... */}
+                {selectedRatings.map((rating) => (
+                  <Badge
+                    key={rating}
+                    variant="secondary"
+                    className="gap-1 cursor-pointer pr-1"
+                    onClick={() => toggleRating(rating)}
+                  >
+                    {rating} sao+
+                    <X className="w-3 h-3 opacity-50 hover:opacity-100" />
+                  </Badge>
+                ))}
+                {(priceRange[0] !== 0 || priceRange[1] !== 300000) && (
+                  <Badge
+                    variant="secondary"
+                    className="gap-1 cursor-pointer pr-1"
+                    onClick={() => setPriceRange([0, 300000])}
+                  >
+                    {priceRange[0].toLocaleString('vi-VN')}đ - {priceRange[1].toLocaleString('vi-VN')}đ
+                    <X className="w-3 h-3 opacity-50 hover:opacity-100" />
+                  </Badge>
+                )}
               </div>
             )}
 
-            {/* Danh sách sản phẩm */}
+            {/* Lưới sản phẩm */}
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (
@@ -294,16 +356,20 @@ export function ProductListPage({
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-20 bg-muted/30 rounded-2xl border-2 border-dashed">
-                <p className="text-muted-foreground text-lg mb-4 font-medium">Rất tiếc, không tìm thấy món ăn bạn cần</p>
-                <Button onClick={clearFilters} variant="default" className="bg-[#EE4D2D]">
-                  Xem tất cả món ăn
+              <div className="text-center py-24 bg-gray-50 rounded-2xl border border-dashed">
+                <p className="text-muted-foreground text-lg mb-4 font-medium">
+                  Không tìm thấy món ăn phù hợp với yêu cầu của bạn
+                </p>
+                <Button onClick={clearFilters} variant="outline" className="border-[#EE4D2D] text-[#EE4D2D]">
+                  Xóa tất cả bộ lọc
                 </Button>
               </div>
             )}
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }
