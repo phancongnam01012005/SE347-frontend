@@ -1,189 +1,204 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { Mail, Phone, MapPin, Clock, MessageCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { CreditCard, Wallet, MapPin, Clock } from 'lucide-react';
+import { Label } from './ui/label';
+import { toast } from 'sonner';
 
-export function CheckoutModal({
-  isOpen,
-  onClose,
-  items,
-  total,
-  onConfirmOrder
-}) {
-  // Khởi tạo state cho Form
+/**
+ * CheckoutModal Component
+ * Cung cấp giao diện liên hệ bao gồm thông tin chi nhánh và form gửi tin nhắn hỗ trợ.
+ */
+export function CheckoutModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
-    customerName: '',
+    name: '',
+    email: '',
     phone: '',
-    address: '',
-    note: '',
-    paymentMethod: 'cod',
-    deliveryTime: 'now'
+    subject: '',
+    message: ''
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Gửi dữ liệu đơn hàng ra ngoài component cha (thường là App.jsx)
-    onConfirmOrder(formData);
+    
+    // Kiểm tra các trường bắt buộc
+    if (!formData.name || !formData.email || !formData.message) {
+      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
+      return;
+    }
+
+    // Giả lập gửi tin nhắn thành công
+    toast.success('Đã gửi tin nhắn thành công! Chúng tôi sẽ liên hệ bạn sớm nhất.');
+    
+    // Reset form
+    setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+    
+    // Đóng modal nếu cần
+    // onClose(); 
   };
 
   const updateField = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Xác nhận đơn hàng</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-[#EE4D2D]">
+            Liên hệ với chúng tôi
+          </DialogTitle>
+          <DialogDescription className="text-base">
+            Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Thông tin giao hàng */}
-          <div className="space-y-4">
-            <h3 className="flex items-center gap-2 font-semibold text-gray-800">
-              <MapPin className="w-5 h-5 text-[#EE4D2D]" />
-              Thông tin giao hàng
-            </h3>
+        <div className="grid md:grid-cols-2 gap-8 mt-6">
+          {/* CỘT TRÁI: Thông tin liên hệ */}
+          <div className="space-y-6">
+            <div className="bg-gradient-to-br from-[#EE4D2D]/10 to-[#FF6B4A]/10 p-6 rounded-2xl border border-[#EE4D2D]/10">
+              <h3 className="font-bold mb-4 text-lg text-gray-800">Thông tin chi tiết</h3>
+              
+              <div className="space-y-5">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-[#EE4D2D]/20 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <Phone className="w-5 h-5 text-[#EE4D2D]" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm mb-0.5 text-gray-900">Hotline</h4>
+                    <p className="text-sm text-gray-600">1900 xxxx</p>
+                    <p className="text-[10px] text-gray-400 uppercase font-medium">Miễn phí cuộc gọi</p>
+                  </div>
+                </div>
 
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Họ và tên</Label>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-[#EE4D2D]/20 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <Mail className="w-5 h-5 text-[#EE4D2D]" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm mb-0.5 text-gray-900">Email hỗ trợ</h4>
+                    <p className="text-sm text-gray-600">support@foodieshop.vn</p>
+                    <p className="text-sm text-gray-600">business@foodieshop.vn</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-[#EE4D2D]/20 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <MapPin className="w-5 h-5 text-[#EE4D2D]" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm mb-0.5 text-gray-900">Trụ sở chính</h4>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      123 Nguyễn Huệ, Phường Bến Nghé, Quận 1<br />
+                      TP. Hồ Chí Minh, Việt Nam
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-[#EE4D2D]/20 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <Clock className="w-5 h-5 text-[#EE4D2D]" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm mb-0.5 text-gray-900">Giờ làm việc</h4>
+                    <p className="text-sm text-gray-600">
+                      T2 - T6: 08:00 - 18:00<br />
+                      T7 - CN: 09:00 - 17:00
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Banner hỗ trợ 24/7 */}
+            <div className="bg-gradient-to-r from-[#EE4D2D] to-[#FF6B4A] p-6 rounded-2xl text-white shadow-lg shadow-orange-200">
+              <div className="flex items-center gap-4 mb-3">
+                <MessageCircle className="w-10 h-10 opacity-90" />
+                <h3 className="font-bold text-lg">Hỗ trợ trực tuyến 24/7</h3>
+              </div>
+              <p className="text-sm opacity-90 leading-relaxed">
+                Đội ngũ chăm sóc khách hàng của chúng tôi luôn sẵn sàng giải đáp thắc mắc và xử lý sự cố của bạn mọi lúc.
+              </p>
+            </div>
+          </div>
+
+          {/* CỘT PHẢI: Form liên hệ */}
+          <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+            <h3 className="font-bold text-lg mb-6 text-gray-800">Gửi lời nhắn cho chúng tôi</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="contact-name" className="font-semibold text-xs">Họ và tên *</Label>
                 <Input
-                  id="name"
-                  value={formData.customerName}
-                  onChange={(e) => updateField('customerName', e.target.value)}
-                  placeholder="Nhập họ và tên"
+                  id="contact-name"
+                  value={formData.name}
+                  onChange={(e) => updateField('name', e.target.value)}
+                  placeholder="Ví dụ: Nguyễn Văn A"
                   required
+                  className="focus-visible:ring-[#EE4D2D]"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Số điện thoại</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="contact-email" className="font-semibold text-xs">Email *</Label>
+                  <Input
+                    id="contact-email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => updateField('email', e.target.value)}
+                    placeholder="email@example.com"
+                    required
+                    className="focus-visible:ring-[#EE4D2D]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="contact-phone" className="font-semibold text-xs">Số điện thoại</Label>
+                  <Input
+                    id="contact-phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => updateField('phone', e.target.value)}
+                    placeholder="09xx xxx xxx"
+                    className="focus-visible:ring-[#EE4D2D]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="contact-subject" className="font-semibold text-xs">Tiêu đề</Label>
                 <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => updateField('phone', e.target.value)}
-                  placeholder="Nhập số điện thoại"
-                  required
+                  id="contact-subject"
+                  value={formData.subject}
+                  onChange={(e) => updateField('subject', e.target.value)}
+                  placeholder="Vấn đề bạn đang gặp phải..."
+                  className="focus-visible:ring-[#EE4D2D]"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="address">Địa chỉ giao hàng</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="contact-message" className="font-semibold text-xs">Nội dung tin nhắn *</Label>
                 <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => updateField('address', e.target.value)}
-                  placeholder="Nhập địa chỉ chi tiết (Số nhà, tên đường, phường...)"
+                  id="contact-message"
+                  value={formData.message}
+                  onChange={(e) => updateField('message', e.target.value)}
+                  placeholder="Mô tả chi tiết câu hỏi hoặc yêu cầu hỗ trợ..."
+                  rows={5}
                   required
-                  rows={3}
+                  className="focus-visible:ring-[#EE4D2D] resize-none"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="note">Ghi chú (tùy chọn)</Label>
-                <Textarea
-                  id="note"
-                  value={formData.note}
-                  onChange={(e) => updateField('note', e.target.value)}
-                  placeholder="Yêu cầu đặc biệt: không cay, để trước cửa..."
-                  rows={2}
-                />
-              </div>
-            </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-[#EE4D2D] hover:bg-[#d73a1e] text-white font-bold h-12 shadow-md transition-all active:scale-[0.98]"
+              >
+                Gửi yêu cầu ngay
+              </Button>
+            </form>
           </div>
-
-          {/* Thời gian giao hàng */}
-          <div className="space-y-3">
-            <h3 className="flex items-center gap-2 font-semibold text-gray-800">
-              <Clock className="w-5 h-5 text-[#EE4D2D]" />
-              Thời gian giao hàng
-            </h3>
-            <RadioGroup
-              value={formData.deliveryTime}
-              onValueChange={(value) => updateField('deliveryTime', value)}
-            >
-              <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                <RadioGroupItem value="now" id="now" />
-                <Label htmlFor="now" className="flex-1 cursor-pointer font-normal">
-                  Giao ngay (25-35 phút)
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                <RadioGroupItem value="schedule" id="schedule" />
-                <Label htmlFor="schedule" className="flex-1 cursor-pointer font-normal">
-                  Đặt lịch giao hàng
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Phương thức thanh toán */}
-          <div className="space-y-3">
-            <h3 className="flex items-center gap-2 font-semibold text-gray-800">
-              <CreditCard className="w-5 h-5 text-[#EE4D2D]" />
-              Phương thức thanh toán
-            </h3>
-            <RadioGroup
-              value={formData.paymentMethod}
-              onValueChange={(value) => updateField('paymentMethod', value)}
-            >
-              <div className="flex items-center space-x-2 border p-3 rounded-lg cursor-pointer">
-                <RadioGroupItem value="cod" id="cod" />
-                <Wallet className="w-5 h-5 text-muted-foreground" />
-                <Label htmlFor="cod" className="flex-1 cursor-pointer font-normal">
-                  Thanh toán khi nhận hàng (COD)
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 border p-3 rounded-lg cursor-pointer">
-                <RadioGroupItem value="momo" id="momo" />
-                <div className="w-5 h-5 bg-pink-600 rounded text-white text-[10px] font-bold flex items-center justify-center">M</div>
-                <Label htmlFor="momo" className="flex-1 cursor-pointer font-normal">
-                  Ví MoMo
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 border p-3 rounded-lg cursor-pointer">
-                <RadioGroupItem value="zalopay" id="zalopay" />
-                <div className="w-5 h-5 bg-blue-500 rounded text-white text-[10px] font-bold flex items-center justify-center">Z</div>
-                <Label htmlFor="zalopay" className="flex-1 cursor-pointer font-normal">
-                  ZaloPay
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Tóm tắt đơn hàng ngắn gọn */}
-          <div className="bg-gray-50 p-4 rounded-lg space-y-2 border">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Tổng số lượng</span>
-              <span className="font-medium">{items.reduce((sum, item) => sum + item.quantity, 0)} món</span>
-            </div>
-            <div className="flex justify-between border-t pt-2 font-bold">
-              <span>Tổng thanh toán</span>
-              <span className="text-[#EE4D2D] text-lg">
-                {total.toLocaleString('vi-VN')}đ
-              </span>
-            </div>
-          </div>
-
-          {/* Nút hành động */}
-          <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1 py-6">
-              Quay lại
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-[#EE4D2D] hover:bg-[#EE4D2D]/90 text-white py-6 font-bold"
-            >
-              Đặt hàng ngay
-            </Button>
-          </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

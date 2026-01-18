@@ -1,65 +1,96 @@
 import React from 'react';
-import { Star, Plus } from 'lucide-react';
-import { ImageWithFallback } from './figma/ImageWithFallback'; // Đảm bảo bạn có file này
+import { Star, Plus, Heart } from 'lucide-react';
+import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 
-export function ProductCard({ product, onAddToCart }) {
-  // Kiểm tra nếu không có product thì không render để tránh lỗi
-  if (!product) return null;
-
+/**
+ * ProductCard Component
+ * Hiển thị thông tin tóm tắt của một món ăn/sản phẩm.
+ */
+export function ProductCard({ 
+  product, 
+  onAddToCart, 
+  onProductClick, 
+  isFavorite = false, 
+  onToggleFavorite, 
+  showFavoriteButton = false 
+}) {
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-border overflow-hidden group">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all border border-border overflow-hidden group h-full flex flex-col">
       {/* Hình ảnh sản phẩm */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div 
+        className="relative aspect-[4/3] overflow-hidden cursor-pointer"
+        onClick={() => onProductClick?.(product)}
+      >
         <ImageWithFallback
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
         
         {/* Nhãn giảm giá */}
         {product.discount && (
           <div className="absolute top-2 left-2">
-            <Badge className="bg-[#EE4D2D] text-white">-{product.discount}%</Badge>
+            <Badge className="bg-[#EE4D2D] text-white font-bold">-{product.discount}%</Badge>
           </div>
         )}
         
-        {/* Tag trạng thái (ví dụ: Bán chạy, Mới) */}
+        {/* Nhãn tag (ví dụ: 'Bán chạy', 'Mới') */}
         {product.tag && (
           <div className="absolute top-2 right-2">
-            <Badge variant="secondary">{product.tag}</Badge>
+            <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-gray-800 font-medium">
+              {product.tag}
+            </Badge>
           </div>
+        )}
+
+        {/* Nút yêu thích */}
+        {showFavoriteButton && onToggleFavorite && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite();
+            }}
+            className="absolute bottom-2 right-2 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-md transition-all active:scale-90"
+          >
+            <Heart 
+              className={`w-5 h-5 transition-colors ${isFavorite ? 'fill-[#EE4D2D] text-[#EE4D2D]' : 'text-gray-400'}`}
+            />
+          </button>
         )}
       </div>
 
       {/* Nội dung thông tin món ăn */}
-      <div className="p-4 space-y-3">
-        <h3 className="line-clamp-2 min-h-[3em] font-medium text-gray-800">
+      <div 
+        className="p-4 flex flex-col flex-1 space-y-2 cursor-pointer"
+        onClick={() => onProductClick?.(product)}
+      >
+        <h3 className="font-bold text-gray-900 line-clamp-2 min-h-[2.5rem] group-hover:text-[#EE4D2D] transition-colors">
           {product.name}
         </h3>
         
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
           {product.description}
         </p>
 
         {/* Đánh giá sao */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-semibold">{product.rating}</span>
+        <div className="flex items-center gap-1.5 py-1">
+          <div className="flex items-center gap-0.5">
+            <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-bold text-gray-700">{product.rating}</span>
           </div>
-          <span className="text-xs text-muted-foreground">({product.reviews} đánh giá)</span>
+          <span className="text-[11px] text-gray-400 font-medium">({product.reviews} nhận xét)</span>
         </div>
 
-        {/* Giá tiền và nút Thêm vào giỏ */}
-        <div className="flex items-center justify-between pt-2">
+        {/* Giá và Nút thêm vào giỏ */}
+        <div className="flex items-end justify-between mt-auto pt-2">
           <div className="flex flex-col">
-            <div className="text-[#EE4D2D] font-bold text-lg">
-              {product.price?.toLocaleString('vi-VN')}đ
+            <div className="text-lg font-black text-[#EE4D2D]">
+              {product.price.toLocaleString('vi-VN')}đ
             </div>
             {product.originalPrice && (
-              <div className="text-xs text-muted-foreground line-through">
+              <div className="text-xs text-gray-400 line-through font-medium">
                 {product.originalPrice.toLocaleString('vi-VN')}đ
               </div>
             )}
@@ -67,8 +98,11 @@ export function ProductCard({ product, onAddToCart }) {
           
           <Button
             size="icon"
-            className="bg-[#EE4D2D] hover:bg-[#EE4D2D]/90 text-white rounded-full transition-colors"
-            onClick={() => onAddToCart(product)}
+            className="bg-[#EE4D2D] hover:bg-[#d73a1e] text-white rounded-full shadow-lg shadow-orange-100 transition-all hover:scale-110 active:scale-95"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart(product);
+            }}
           >
             <Plus className="w-5 h-5" />
           </Button>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { X, SlidersHorizontal } from 'lucide-react';
 import { ProductCard } from './ProductCard';
 import { Header } from './Header';
@@ -24,6 +24,10 @@ import {
   SheetTrigger,
 } from './ui/sheet';
 
+/**
+ * ProductListPage Component
+ * Trang danh sách sản phẩm đầy đủ với các chức năng: Lọc (Filter), Sắp xếp (Sort) và Phân trang (Pagination).
+ */
 export function ProductListPage({
   isOpen,
   products = [],
@@ -34,38 +38,61 @@ export function ProductListPage({
   isLoggedIn,
   userName,
   userAvatar,
+  userType,
   onLoginClick,
   onRegisterClick,
   onProfileClick,
   onLogout,
+  initialCategory,
+  onProductClick,
+  onFavoritesClick,
+  favoritesCount,
+  favoriteProductIds = [],
+  onToggleProductFavorite,
+  onAddressClick,
+  onOrdersClick,
+  onReportsClick,
+  onSellerOrdersClick,
+  onSellerProductsClick,
+  onSellerStatisticsClick,
+  onSellerPromotionsClick,
+  onSellerDashboardClick,
+  onAboutClick,
+  onContactClick,
+  onPolicyClick,
+  onTermsClick,
 }) {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 300000]);
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [sortBy, setSortBy] = useState('popular');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
-  // Lấy danh sách danh mục duy nhất từ sản phẩm
+  // Cấu hình ban đầu khi mở trang hoặc đóng trang
+  useEffect(() => {
+    if (isOpen && initialCategory) {
+      setSelectedCategories([initialCategory]);
+    } else if (!isOpen) {
+      clearFilters();
+    }
+  }, [isOpen, initialCategory]);
+
+  // Lấy danh sách danh mục duy nhất từ dữ liệu sản phẩm
   const categories = useMemo(() => {
-    return Array.from(new Set(products.map((p) => p.category)));
+    return Array.from(new Set(products.map(p => p.category)));
   }, [products]);
 
-  // Lọc và sắp xếp sản phẩm
+  // Xử lý Lọc và Sắp xếp sản phẩm
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
-    // Lọc theo danh mục
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter((p) =>
-        selectedCategories.includes(p.category)
-      );
+      filtered = filtered.filter((p) => selectedCategories.includes(p.category));
     }
 
-    // Lọc theo khoảng giá
-    filtered = filtered.filter(
-      (p) => p.price >= priceRange[0] && p.price <= priceRange[1]
-    );
+    filtered = filtered.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1]);
 
-    // Lọc theo đánh giá
     if (selectedRatings.length > 0) {
       filtered = filtered.filter((p) => {
         const productRating = Math.floor(p.rating);
@@ -73,21 +100,12 @@ export function ProductListPage({
       });
     }
 
-    // Sắp xếp
     switch (sortBy) {
-      case 'price-asc':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'popular':
-      default:
-        filtered.sort((a, b) => b.reviews - a.reviews);
-        break;
+      case 'price-asc': filtered.sort((a, b) => a.price - b.price); break;
+      case 'price-desc': filtered.sort((a, b) => b.price - a.price); break;
+      case 'rating': filtered.sort((a, b) => b.rating - a.rating); break;
+      case 'popular': 
+      default: filtered.sort((a, b) => b.reviews - a.reviews); break;
     }
 
     return filtered;
@@ -95,17 +113,13 @@ export function ProductListPage({
 
   const toggleCategory = (category) => {
     setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
     );
   };
 
   const toggleRating = (rating) => {
     setSelectedRatings((prev) =>
-      prev.includes(rating)
-        ? prev.filter((r) => r !== rating)
-        : [...prev, rating]
+      prev.includes(rating) ? prev.filter((r) => r !== rating) : [...prev, rating]
     );
   };
 
@@ -114,6 +128,7 @@ export function ProductListPage({
     setPriceRange([0, 300000]);
     setSelectedRatings([]);
     setSortBy('popular');
+    setCurrentPage(1);
   };
 
   const hasActiveFilters =
@@ -122,23 +137,20 @@ export function ProductListPage({
     priceRange[0] !== 0 ||
     priceRange[1] !== 300000;
 
+  // Thành phần giao diện Bộ lọc (Dùng chung cho Desktop và Mobile Sheet)
   const FilterSection = () => (
-    <div className="space-y-6">
-      {/* Lọc danh mục */}
+    <div className="space-y-8">
       <div>
-        <h3 className="mb-4 font-semibold text-foreground">Danh mục</h3>
-        <div className="space-y-3">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">Danh mục</h3>
+        <div className="space-y-2.5">
           {categories.map((category) => (
-            <div key={category} className="flex items-center space-x-2">
+            <div key={category} className="flex items-center gap-2 group cursor-pointer" onClick={() => toggleCategory(category)}>
               <Checkbox
                 id={`category-${category}`}
                 checked={selectedCategories.includes(category)}
-                onCheckedChange={() => toggleCategory(category)}
+                className="data-[state=checked]:bg-[#EE4D2D] border-gray-300"
               />
-              <Label
-                htmlFor={`category-${category}`}
-                className="text-sm cursor-pointer font-normal"
-              >
+              <Label className="text-sm font-medium text-gray-600 group-hover:text-[#EE4D2D] cursor-pointer transition-colors">
                 {category}
               </Label>
             </div>
@@ -146,40 +158,36 @@ export function ProductListPage({
         </div>
       </div>
 
-      {/* Lọc khoảng giá */}
       <div>
-        <h3 className="mb-4 font-semibold text-foreground">Khoảng giá</h3>
-        <div className="space-y-4">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">Khoảng giá</h3>
+        <div className="space-y-6 px-2">
           <Slider
             value={priceRange}
-            onValueChange={(value) => setPriceRange(value)}
+            onValueChange={setPriceRange}
             min={0}
             max={300000}
             step={10000}
-            className="w-full"
+            className="text-[#EE4D2D]"
           />
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>{priceRange[0].toLocaleString('vi-VN')}đ</span>
-            <span>{priceRange[1].toLocaleString('vi-VN')}đ</span>
+          <div className="flex items-center justify-between text-xs font-bold text-[#EE4D2D] bg-orange-50 p-2 rounded-lg">
+            <span>{priceRange[0].toLocaleString()}đ</span>
+            <span>-</span>
+            <span>{priceRange[1].toLocaleString()}đ</span>
           </div>
         </div>
       </div>
 
-      {/* Lọc đánh giá */}
       <div>
-        <h3 className="mb-4 font-semibold text-foreground">Đánh giá</h3>
-        <div className="space-y-3">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">Đánh giá</h3>
+        <div className="space-y-2.5">
           {[5, 4, 3, 2, 1].map((rating) => (
-            <div key={rating} className="flex items-center space-x-2">
+            <div key={rating} className="flex items-center gap-2 group cursor-pointer" onClick={() => toggleRating(rating)}>
               <Checkbox
                 id={`rating-${rating}`}
                 checked={selectedRatings.includes(rating)}
-                onCheckedChange={() => toggleRating(rating)}
+                className="data-[state=checked]:bg-[#EE4D2D] border-gray-300"
               />
-              <Label
-                htmlFor={`rating-${rating}`}
-                className="text-sm cursor-pointer flex items-center gap-1 font-normal"
-              >
+              <Label className="text-sm font-medium text-gray-600 group-hover:text-[#EE4D2D] cursor-pointer flex items-center gap-1.5">
                 {rating} sao trở lên
               </Label>
             </div>
@@ -187,14 +195,9 @@ export function ProductListPage({
         </div>
       </div>
 
-      {/* Nút xóa bộ lọc */}
       {hasActiveFilters && (
-        <Button
-          variant="outline"
-          onClick={clearFilters}
-          className="w-full border-[#EE4D2D] text-[#EE4D2D] hover:bg-[#EE4D2D]/10"
-        >
-          Xóa bộ lọc
+        <Button variant="ghost" onClick={clearFilters} className="w-full text-[#EE4D2D] hover:bg-orange-50 font-bold border border-dashed border-[#EE4D2D]/30">
+          Thiết lập lại bộ lọc
         </Button>
       )}
     </div>
@@ -203,50 +206,68 @@ export function ProductListPage({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto animate-in fade-in duration-300">
       <Header
         cartItemsCount={cartItemsCount}
         onCartClick={onCartClick}
         isLoggedIn={isLoggedIn}
         userName={userName}
         userAvatar={userAvatar}
+        userType={userType}
         onLoginClick={onLoginClick}
         onRegisterClick={onRegisterClick}
         onProfileClick={onProfileClick}
         onLogout={onLogout}
         onCategoryClick={onClose}
+        onLogoClick={onClose}
+        onSellerDashboardClick={onSellerDashboardClick}
+        onAddressClick={onAddressClick}
+        onOrdersClick={onOrdersClick}
+        onReportsClick={onReportsClick}
+        onSellerOrdersClick={onSellerOrdersClick}
+        onSellerProductsClick={onSellerProductsClick}
+        onSellerStatisticsClick={onSellerStatisticsClick}
+        onSellerPromotionsClick={onSellerPromotionsClick}
+        onProductClick={onProductClick}
+        onFavoritesClick={onFavoritesClick}
+        favoritesCount={favoritesCount}
+        favoriteProductIds={favoriteProductIds}
+        onToggleProductFavorite={onToggleProductFavorite}
       />
 
-      {/* Tiêu đề trang */}
-      <div className="bg-white border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">Danh sách món ăn</h1>
-              <p className="text-sm text-muted-foreground">
-                Tìm thấy {filteredProducts.length} món ăn phù hợp
-              </p>
-            </div>
-            <Button variant="ghost" onClick={onClose} className="hover:bg-gray-100">
-              <X className="w-4 h-4 mr-2" />
-              Đóng
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Khám phá món ngon</h1>
+            <p className="text-sm font-medium text-gray-500 mt-1">Tìm thấy {filteredProducts.length} kết quả phù hợp</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[200px] rounded-xl border-gray-200 font-bold">
+                <SelectValue placeholder="Sắp xếp theo" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="popular">Phổ biến nhất</SelectItem>
+                <SelectItem value="rating">Đánh giá tốt nhất</SelectItem>
+                <SelectItem value="price-asc">Giá: Thấp đến Cao</SelectItem>
+                <SelectItem value="price-desc">Giá: Cao đến Thấp</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={onClose} className="rounded-xl font-bold border-gray-200">
+              <X className="w-4 h-4 mr-2" /> Đóng
             </Button>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex gap-8">
-          {/* Bộ lọc bên trái - Desktop */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24 bg-white rounded-xl border border-border p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold">Bộ lọc</h2>
+        <div className="flex gap-10">
+          {/* SIDEBAR BỘ LỌC - DESKTOP */}
+          <aside className="hidden lg:block w-72 shrink-0">
+            <div className="sticky top-28 bg-white rounded-3xl border p-8 shadow-sm">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-lg font-black text-gray-900 italic">BỘ LỌC</h2>
                 {hasActiveFilters && (
-                  <Badge variant="secondary" className="bg-[#EE4D2D]/10 text-[#EE4D2D]">
-                    {selectedCategories.length +
-                      selectedRatings.length +
-                      (priceRange[0] !== 0 || priceRange[1] !== 300000 ? 1 : 0)}
+                  <Badge className="bg-[#EE4D2D] hover:bg-[#EE4D2D] border-none font-black rounded-full w-6 h-6 flex items-center justify-center p-0">
+                    !
                   </Badge>
                 )}
               </div>
@@ -254,122 +275,105 @@ export function ProductListPage({
             </div>
           </aside>
 
-          {/* Nội dung chính */}
-          <div className="flex-1">
-            {/* Thanh công cụ */}
-            <div className="flex items-center justify-between mb-6">
-              {/* Nút lọc Mobile */}
+          {/* NỘI DUNG CHÍNH */}
+          <div className="flex-1 space-y-8">
+            {/* Thanh công cụ Mobile & Tags */}
+            <div className="lg:hidden flex items-center justify-between">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" className="lg:hidden gap-2">
-                    <SlidersHorizontal className="w-4 h-4" />
-                    Bộ lọc
-                    {hasActiveFilters && (
-                      <Badge variant="secondary" className="ml-1 h-5 px-1 bg-[#EE4D2D] text-white">
-                        {selectedCategories.length +
-                          selectedRatings.length +
-                          (priceRange[0] !== 0 || priceRange[1] !== 300000 ? 1 : 0)}
-                      </Badge>
-                    )}
+                  <Button variant="outline" className="rounded-full border-gray-200 shadow-sm gap-2 font-bold px-6">
+                    <SlidersHorizontal size={16} /> Lọc & Phân loại
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-80 overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle>Bộ lọc</SheetTitle>
-                    <SheetDescription>
-                      Lọc món ăn theo danh mục, giá và đánh giá
-                    </SheetDescription>
+                <SheetContent side="left" className="w-[320px] rounded-r-3xl p-8">
+                  <SheetHeader className="mb-8">
+                    <SheetTitle className="text-2xl font-black">Bộ lọc tìm kiếm</SheetTitle>
+                    <SheetDescription>Tối ưu lựa chọn món ăn của bạn</SheetDescription>
                   </SheetHeader>
-                  <div className="mt-6">
-                    <FilterSection />
-                  </div>
+                  <FilterSection />
                 </SheetContent>
               </Sheet>
-
-              {/* Sắp xếp */}
-              <div className="flex items-center gap-2 ml-auto">
-                <span className="text-sm text-muted-foreground hidden sm:inline">
-                  Sắp xếp:
-                </span>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Sắp xếp theo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="popular">Phổ biến nhất</SelectItem>
-                    <SelectItem value="rating">Đánh giá cao</SelectItem>
-                    <SelectItem value="price-asc">Giá tăng dần</SelectItem>
-                    <SelectItem value="price-desc">Giá giảm dần</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
-            {/* Tags bộ lọc đang hoạt động */}
-            {hasActiveFilters && (
-              <div className="flex flex-wrap items-center gap-2 mb-6">
-                <span className="text-sm text-muted-foreground">Đang lọc:</span>
-                {selectedCategories.map((category) => (
-                  <Badge
-                    key={category}
-                    variant="secondary"
-                    className="gap-1 cursor-pointer pr-1"
-                    onClick={() => toggleCategory(category)}
-                  >
-                    {category}
-                    <X className="w-3 h-3 opacity-50 hover:opacity-100" />
-                  </Badge>
-                ))}
-                {selectedRatings.map((rating) => (
-                  <Badge
-                    key={rating}
-                    variant="secondary"
-                    className="gap-1 cursor-pointer pr-1"
-                    onClick={() => toggleRating(rating)}
-                  >
-                    {rating} sao+
-                    <X className="w-3 h-3 opacity-50 hover:opacity-100" />
-                  </Badge>
-                ))}
-                {(priceRange[0] !== 0 || priceRange[1] !== 300000) && (
-                  <Badge
-                    variant="secondary"
-                    className="gap-1 cursor-pointer pr-1"
-                    onClick={() => setPriceRange([0, 300000])}
-                  >
-                    {priceRange[0].toLocaleString('vi-VN')}đ - {priceRange[1].toLocaleString('vi-VN')}đ
-                    <X className="w-3 h-3 opacity-50 hover:opacity-100" />
-                  </Badge>
-                )}
+            {/* Hiển thị lưới sản phẩm */}
+            {filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredProducts
+                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onAddToCart={onAddToCart}
+                      onProductClick={onProductClick}
+                      isFavorite={favoriteProductIds.includes(product.id)}
+                      onToggleFavorite={() => onToggleProductFavorite?.(product.id)}
+                      showFavoriteButton={isLoggedIn && userType === 'buyer'}
+                    />
+                  ))}
+              </div>
+            ) : (
+              <div className="text-center py-32 bg-white rounded-3xl border border-dashed border-gray-200">
+                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                  <X size={40} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Rất tiếc, không có kết quả</h3>
+                <p className="text-gray-500 mb-8">Hãy thử thay đổi điều kiện lọc hoặc từ khóa tìm kiếm</p>
+                <Button onClick={clearFilters} className="bg-[#EE4D2D] hover:bg-[#d73a1e] font-black px-10 rounded-xl">
+                  Xóa tất cả bộ lọc
+                </Button>
               </div>
             )}
 
-            {/* Lưới sản phẩm */}
-            {filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={onAddToCart}
-                  />
+            {/* Phân trang tự động */}
+            {filteredProducts.length > itemsPerPage && (
+              <div className="flex items-center justify-center gap-2 pt-10 border-t border-dashed">
+                <Button variant="outline" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className="rounded-xl font-bold">
+                  Quay lại
+                </Button>
+                
+                {/* Logic hiển thị số trang tinh gọn */}
+                {Array.from({ length: Math.ceil(filteredProducts.length / itemsPerPage) }).map((_, i) => (
+                  <Button
+                    key={i + 1}
+                    variant={currentPage === i + 1 ? "default" : "outline"}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`w-10 h-10 rounded-xl font-black ${currentPage === i + 1 ? "bg-[#EE4D2D] hover:bg-[#d73a1e] shadow-lg shadow-orange-100" : "border-gray-200"}`}
+                  >
+                    {i + 1}
+                  </Button>
                 ))}
-              </div>
-            ) : (
-              <div className="text-center py-24 bg-gray-50 rounded-2xl border border-dashed">
-                <p className="text-muted-foreground text-lg mb-4 font-medium">
-                  Không tìm thấy món ăn phù hợp với yêu cầu của bạn
-                </p>
-                <Button onClick={clearFilters} variant="outline" className="border-[#EE4D2D] text-[#EE4D2D]">
-                  Xóa tất cả bộ lọc
+
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredProducts.length / itemsPerPage), prev + 1))} 
+                  disabled={currentPage >= Math.ceil(filteredProducts.length / itemsPerPage)} 
+                  className="rounded-xl font-bold"
+                >
+                  Kế tiếp
                 </Button>
               </div>
             )}
           </div>
         </div>
-      </div>
-      
-      <Footer />
+      </main>
+
+      <Footer
+        onLogoClick={() => { onClose(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        onAboutClick={onAboutClick}
+        onContactClick={onContactClick}
+        onPolicyClick={onPolicyClick}
+        onTermsClick={onTermsClick}
+        onCartClick={onCartClick}
+        onOrdersClick={onOrdersClick}
+        onFavoritesClick={onFavoritesClick}
+        onSellerOrdersClick={onSellerOrdersClick}
+        onSellerProductsClick={onSellerProductsClick}
+        onSellerStatisticsClick={onSellerStatisticsClick}
+        onSellerPromotionsClick={onSellerPromotionsClick}
+        isLoggedIn={isLoggedIn}
+        userType={userType}
+      />
     </div>
   );
 }
