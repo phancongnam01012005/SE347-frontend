@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import { cn } from "./utils";
 
 function Textarea({ className, ...props }) {
@@ -6,13 +7,8 @@ function Textarea({ className, ...props }) {
     <textarea
       data-slot="textarea"
       className={cn(
-        // Cơ bản: border, độ bo góc, padding và không cho phép kéo dãn thủ công (resize-none)
-        "flex min-h-[80px] w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-base transition-shadow placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none",
-        // Trạng thái focus (khi nhấn vào)
-        "outline-none focus-visible:ring-2 focus-visible:ring-[#EE4D2D]/20 focus-visible:border-[#EE4D2D]",
-        // Trạng thái lỗi (invalid)
-        "aria-invalid:border-red-500 aria-invalid:ring-red-500/20",
-        className
+        "resize-none border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-input-background px-3 py-2 text-base transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        className,
       )}
       {...props}
     />

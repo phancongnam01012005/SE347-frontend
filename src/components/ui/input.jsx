@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import { cn } from "./utils";
 
 function Input({ className, type, ...props }) {
@@ -7,13 +8,10 @@ function Input({ className, type, ...props }) {
       type={type}
       data-slot="input"
       className={cn(
-        // Cơ bản: border, độ bo góc, padding
-        "flex h-9 w-full min-w-0 rounded-md border border-gray-200 bg-white px-3 py-1 text-base transition-shadow file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        // Trạng thái focus (khi nhấn vào ô nhập)
-        "outline-none focus-visible:ring-2 focus-visible:ring-[#EE4D2D]/20 focus-visible:border-[#EE4D2D]",
-        // Trạng thái lỗi (invalid)
-        "aria-invalid:border-red-500 aria-invalid:ring-red-500/20",
-        className
+        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base bg-input-background transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        className,
       )}
       {...props}
     />

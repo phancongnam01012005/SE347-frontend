@@ -1,6 +1,6 @@
-@import "tailwindcss";
-
 @custom-variant dark (&:is(.dark *));
+
+@import "tailwindcss";
 
 :root {
   --font-size: 16px;
@@ -184,4 +184,16 @@
 
 html {
   font-size: var(--font-size);
+}
+
+/* Hide scrollbar for horizontal scroll */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

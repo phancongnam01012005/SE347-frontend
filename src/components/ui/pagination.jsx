@@ -50,10 +50,7 @@ function PaginationLink({
           variant: isActive ? "outline" : "ghost",
           size,
         }),
-        // Nếu là trang đang kích hoạt, ta đổi màu cam cho giống ShopeeFood
-        isActive && "border-[#EE4D2D] text-[#EE4D2D] hover:bg-[#EE4D2D]/10",
-        "cursor-pointer",
-        className
+        className,
       )}
       {...props}
     />
@@ -69,7 +66,7 @@ function PaginationPrevious({ className, ...props }) {
       {...props}
     >
       <ChevronLeftIcon className="size-4" />
-      <span className="hidden sm:block">Trước</span>
+      <span className="hidden sm:block">Previous</span>
     </PaginationLink>
   );
 }
@@ -82,7 +79,7 @@ function PaginationNext({ className, ...props }) {
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
       {...props}
     >
-      <span className="hidden sm:block">Tiếp</span>
+      <span className="hidden sm:block">Next</span>
       <ChevronRightIcon className="size-4" />
     </PaginationLink>
   );
@@ -97,7 +94,7 @@ function PaginationEllipsis({ className, ...props }) {
       {...props}
     >
       <MoreHorizontalIcon className="size-4" />
-      <span className="sr-only">Thêm trang</span>
+      <span className="sr-only">More pages</span>
     </span>
   );
 }

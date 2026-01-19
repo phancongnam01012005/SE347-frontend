@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cva } from "class-variance-authority";
+
 import { cn } from "./utils";
 
 const alertVariants = cva(
@@ -7,15 +8,15 @@ const alertVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-white text-gray-950",
+        default: "bg-card text-card-foreground",
         destructive:
-          "text-red-600 border-red-200 bg-red-50 [&>svg]:text-current *:data-[slot=alert-description]:text-red-600/90",
+          "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 function Alert({ className, variant, ...props }) {
@@ -35,7 +36,7 @@ function AlertTitle({ className, ...props }) {
       data-slot="alert-title"
       className={cn(
         "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
-        className
+        className,
       )}
       {...props}
     />
@@ -48,7 +49,7 @@ function AlertDescription({ className, ...props }) {
       data-slot="alert-description"
       className={cn(
         "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
-        className
+        className,
       )}
       {...props}
     />

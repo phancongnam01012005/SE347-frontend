@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 
@@ -11,7 +13,6 @@ function Slider({
   max = 100,
   ...props
 }) {
-  // Xác định số lượng nút kéo (thường là 1 hoặc 2 cho khoảng giá)
   const _values = React.useMemo(
     () =>
       Array.isArray(value)
@@ -35,28 +36,24 @@ function Slider({
       )}
       {...props}
     >
-      {/* Đường ray của thanh trượt */}
       <SliderPrimitive.Track
         data-slot="slider-track"
         className={cn(
-          "bg-gray-200 relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
+          "bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-4 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
         )}
       >
-        {/* Vùng được chọn trên thanh trượt */}
         <SliderPrimitive.Range
           data-slot="slider-range"
           className={cn(
-            "bg-[#EE4D2D] absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
+            "bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
           )}
         />
       </SliderPrimitive.Track>
-      
-      {/* Các nút kéo (Thumbs) */}
       {Array.from({ length: _values.length }, (_, index) => (
         <SliderPrimitive.Thumb
           data-slot="slider-thumb"
           key={index}
-          className="border-[#EE4D2D] bg-white block size-4 shrink-0 rounded-full border-2 shadow-sm transition-all hover:scale-110 focus-visible:ring-4 focus-visible:ring-[#EE4D2D]/20 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
+          className="border-primary bg-background ring-ring/50 block size-4 shrink-0 rounded-full border shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
         />
       ))}
     </SliderPrimitive.Root>

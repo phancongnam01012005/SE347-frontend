@@ -1,20 +1,10 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
-import "./styles/globals.css"; // Đảm bảo đường dẫn này đúng với file CSS bạn đã tạo
-import { BrowserRouter } from "react-router-dom";
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './styles/globals.css' // <--- THÊM DÒNG NÀY (Đúng đường dẫn file CSS của bạn)
 
-// Nếu bạn chưa có AuthContext, hãy tạm thời comment dòng import này lại 
-// hoặc tạo file AuthContext như hướng dẫn ở bước dưới.
-// import { AuthProvider } from "./context/AuthContext"; 
-
-ReactDOM.createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      {/* Tạm thời bỏ AuthProvider nếu chưa có file để tránh lỗi crash */}
-      {/* <AuthProvider> */}
-        <App />
-      {/* </AuthProvider> */}
-    </BrowserRouter>
-  </React.StrictMode>
-);
+    <App />
+  </React.StrictMode>,
+)
