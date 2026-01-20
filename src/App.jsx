@@ -1,16 +1,16 @@
 import { useState } from "react";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"; 
 
-// Layout components
-import { Header, Footer } from "./components/layout";
+// Layout
+import { MainLayout } from "./layouts/MainLayout";
 
-// Section components
-import { HeroSection, CategoryScroller } from "./components/section";
-
-// Card components
-import { CategoryCard, ProductCard, ShopCard } from "./components/card";
-
-// Page components
-import { ProductDetailPage, ProductListPage, ShopDetailPage, ShopListPage, AdminPage } from "./components/page";
+// Pages
+import { HomePage } from "./pages/HomePage";
+import { ProductsPage } from "./pages/ProductsPage";
+import { ProductDetailPageWrapper } from "./pages/ProductDetailPageWrapper";
+import { ShopsPage } from "./pages/ShopsPage";
+import { ShopDetailPageWrapper } from "./pages/ShopDetailPageWrapper";
+import { AdminPageWrapper } from "./pages/AdminPageWrapper";
 
 // Modal components
 import { 
@@ -21,7 +21,9 @@ import {
   LoginModal,
   PolicyModal,
   TermsModal,
-  OrderSuccessModal,
+  OrderSuccessModal
+} from "./components/modal";
+import { 
   CheckoutModal, 
   PaymentModal, 
   RegisterModal, 
@@ -31,18 +33,20 @@ import {
   SellerOrdersModal, 
   SellerProductsModal, 
   SellerStatisticsModal, 
-  SellerPromotionsModal
+  SellerPromotionsModal 
 } from "./components/modal";
 
 // Cart components
 import { ShoppingCart } from "./components/cart";
 
-// Data
-import { categories, products, shops } from "./data/mockData";
+// Data and types
+import { products, shops } from "./data/mockData";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 
-export default function App() {
+function AppContent() {
+  const navigate = useNavigate();
+  
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -76,27 +80,10 @@ export default function App() {
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   
-  // Product and Shop detail states
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [isProductDetailOpen, setIsProductDetailOpen] = useState(false);
-  const [selectedShop, setSelectedShop] = useState(null);
-  const [isShopDetailOpen, setIsShopDetailOpen] = useState(false);
-  
   // Favorites states (only for buyer)
   const [favoriteProductIds, setFavoriteProductIds] = useState([]);
   const [favoriteShopIds, setFavoriteShopIds] = useState([]);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
-  
-  // Product list page state
-  const [isProductListOpen, setIsProductListOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(undefined);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Shop list page state
-  const [isShopListOpen, setIsShopListOpen] = useState(false);
-  
-  // Admin dashboard state
-  const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
 
   const calculateTotal = () => {
     const subtotal = cartItems.reduce(
@@ -238,7 +225,7 @@ export default function App() {
       setCurrentUser(adminUser);
       setIsLoggedIn(true);
       setIsLoginOpen(false);
-      setIsAdminDashboardOpen(true);
+      navigate('/admin');
       toast.success(`Chào mừng ${adminUser.name}!`);
       return;
     }
@@ -254,6 +241,7 @@ export default function App() {
         { id: '2', label: 'Văn phòng', address: '456 Đường XYZ, Phường 2, Quận 3, TP.HCM', isDefault: false }
       ]
     };
+    
     setCurrentUser(mockUser);
     setIsLoggedIn(true);
     setIsLoginOpen(false);
@@ -269,6 +257,7 @@ export default function App() {
       userType: userType,
       addresses: []
     };
+    
     setCurrentUser(newUser);
     setIsLoggedIn(true);
     setIsRegisterOpen(false);
@@ -281,6 +270,7 @@ export default function App() {
     setUserOrders([]);
     setUserReports([]);
     setIsProfileOpen(false);
+    navigate('/');
     toast.success('Đã đăng xuất thành công');
   };
   
@@ -314,6 +304,7 @@ export default function App() {
       toast.error('Vui lòng đăng nhập với tài khoản Buyer để sử dụng tính năng này');
       return;
     }
+    
     if (favoriteProductIds.includes(productId)) {
       setFavoriteProductIds(prev => prev.filter(id => id !== productId));
       const product = products.find(p => p.id === productId);
@@ -330,6 +321,7 @@ export default function App() {
       toast.error('Vui lòng đăng nhập với tài khoản Buyer để sử dụng tính năng này');
       return;
     }
+    
     if (favoriteShopIds.includes(shopId)) {
       setFavoriteShopIds(prev => prev.filter(id => id !== shopId));
       const shop = shops.find(s => s.id === shopId);
@@ -340,387 +332,79 @@ export default function App() {
       toast.success(`Đã thêm "${shop?.name}" vào yêu thích`);
     }
   };
-
-  const handleProductClick = (product) => {
-    setSelectedProduct(product);
-    setIsProductDetailOpen(true);
-  };
-
-  const handleShopClick = (shop) => {
-    setSelectedShop(shop);
-    setIsShopDetailOpen(true);
-  };
-
+  
   const handleSearch = (query) => {
-    setSearchQuery(query);
-    setSelectedCategory(undefined);
-    setIsProductListOpen(true);
+    navigate(`/products?search=${encodeURIComponent(query)}`);
   };
 
   const favoriteProducts = products.filter(p => favoriteProductIds.includes(p.id));
   const favoriteShops = shops.filter(s => favoriteShopIds.includes(s.id));
   const favoritesCount = favoriteProductIds.length + favoriteShopIds.length;
   const isBuyer = isLoggedIn && currentUser?.userType === 'buyer';
-
   const cartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const isAdmin = isLoggedIn && currentUser?.userType === 'admin';
-  
-  if (isAdmin && currentUser) {
-    return (
-      <>
-        <AdminPage currentUser={currentUser} onLogout={handleLogout} />
-        <Toaster position="top-center" />
-        <LoginModal
-          isOpen={isLoginOpen}
-          onClose={() => setIsLoginOpen(false)}
-          onLogin={handleLogin}
-          onSwitchToRegister={() => {
-            setIsLoginOpen(false);
-            setIsRegisterOpen(true);
-          }}
-        />
-      </>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header
-        cartItemsCount={cartItemsCount}
-        onCartClick={() => setIsCartOpen(true)}
-        isLoggedIn={isLoggedIn}
-        userName={currentUser?.name}
-        userAvatar={currentUser?.avatar}
-        userType={currentUser?.userType}
-        onLoginClick={() => setIsLoginOpen(true)}
-        onRegisterClick={() => setIsRegisterOpen(true)}
-        onProfileClick={() => setIsProfileOpen(true)}
-        onLogout={handleLogout}
-        onCategoryClick={() => setIsProductListOpen(true)}
-        onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)}
-        onFavoritesClick={() => setIsFavoritesOpen(true)}
-        favoritesCount={isBuyer ? favoritesCount : 0}
-        onAddressClick={() => setIsAddressModalOpen(true)}
-        onOrdersClick={() => setIsOrdersModalOpen(true)}
-        onReportsClick={() => setIsReportsModalOpen(true)}
-        onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)}
-        onSellerProductsClick={() => setIsSellerProductsModalOpen(true)}
-        onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)}
-        onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)}
-        onSearch={handleSearch}
-      />
-
-      <HeroSection />
-
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <h2 className="mb-6 text-2xl font-bold">Danh mục</h2>
-        <CategoryScroller>
-          <div 
-            onClick={() => {
-              setSelectedCategory(undefined);
-              setIsProductListOpen(true);
-            }} 
-            className="cursor-pointer flex-shrink-0"
-          >
-            <CategoryCard
-              name="Tất cả"
-              image="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=400&fit=crop"
-              itemCount={products.length}
+    <>
+      <Routes>
+        <Route 
+          path="/admin" 
+          element={
+            <AdminPageWrapper
+              isLoggedIn={isLoggedIn}
+              currentUser={currentUser}
+              onLogout={handleLogout}
             />
-          </div>
-          {categories.map((category, index) => {
-            const actualCount = products.filter(p => p.category === category.name).length;
-            return (
-              <div 
-                key={index} 
-                onClick={() => {
-                  setSelectedCategory(category.name);
-                  setIsProductListOpen(true);
-                }} 
-                className="cursor-pointer flex-shrink-0"
-              >
-                <CategoryCard
-                  name={category.name}
-                  image={category.image}
-                  itemCount={actualCount}
-                />
-              </div>
-            );
-          })}
-        </CategoryScroller>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-4 py-8 bg-gradient-to-b from-orange-50/50 to-transparent">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Cửa hàng nổi bật</h2>
-          <button 
-            className="text-[#EE4D2D] hover:underline text-sm font-medium"
-            onClick={() => setIsShopListOpen(true)}
-          >
-            Xem tất cả
-          </button>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {shops.slice(0, 8).map((shop) => (
-            <ShopCard
-              key={shop.id}
-              shop={shop}
-              onShopClick={() => handleShopClick(shop)}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Món ăn nổi bật</h2>
-          <button 
-            className="text-[#EE4D2D] hover:underline text-sm font-medium"
-            onClick={() => setIsProductListOpen(true)}
-          >
-            Xem tất cả
-          </button>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={handleAddToCart}
-              onProductClick={handleProductClick}
-              isFavorite={favoriteProductIds.includes(product.id)}
-              onToggleFavorite={() => handleToggleProductFavorite(product.id)}
-              showFavoriteButton={isBuyer}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-gradient-to-r from-orange-400 to-red-500 rounded-2xl p-8 md:p-12 text-white">
-          <div className="max-w-2xl">
-            <h2 className="mb-4 text-white text-3xl font-bold">Ưu đãi đặc biệt hôm nay!</h2>
-            <p className="text-white/90 mb-6 text-lg">
-              Giảm ngay 50.000đ cho đơn hàng từ 200.000đ. Freeship toàn bộ đơn hàng!
-            </p>
-            <button 
-              className="bg-white text-[#EE4D2D] px-6 py-3 rounded-lg hover:bg-white/90 transition-colors font-bold"
-              onClick={() => setIsProductListOpen(true)}
-            >
-              Đặt ngay
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
-      <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
-      <PolicyModal isOpen={isPolicyModalOpen} onClose={() => setIsPolicyModalOpen(false)} />
-      <TermsModal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} />
-
-      <Footer
-        onLogoClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        onAboutClick={() => setIsAboutModalOpen(true)}
-        onContactClick={() => setIsContactModalOpen(true)}
-        onPolicyClick={() => setIsPolicyModalOpen(true)}
-        onTermsClick={() => setIsTermsModalOpen(true)}
-        onCartClick={() => setIsCartOpen(true)}
-        onOrdersClick={() => setIsOrdersModalOpen(true)}
-        onFavoritesClick={() => setIsFavoritesOpen(true)}
-        onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)}
-        onSellerProductsClick={() => setIsSellerProductsModalOpen(true)}
-        onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)}
-        onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)}
-        isLoggedIn={isLoggedIn}
-        userType={currentUser?.userType}
-      />
-
-      <ShoppingCart
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={handleUpdateQuantity}
-        onRemoveItem={handleRemoveItem}
-        onCheckout={handleCheckout}
-      />
-
-      <CheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        items={cartItems}
-        total={calculateTotal()}
-        onConfirmOrder={handleConfirmOrder}
-        userAddresses={currentUser?.addresses}
-        userName={currentUser?.name}
-        userPhone={currentUser?.phone}
-      />
-
-      <OrderSuccessModal
-        isOpen={isOrderSuccessOpen}
-        onClose={() => setIsOrderSuccessOpen(false)}
-        orderNumber={orderNumber}
-      />
-
-      <PaymentModal
-        isOpen={isPaymentOpen}
-        onClose={() => setIsPaymentOpen(false)}
-        paymentMethod={paymentMethod}
-        orderNumber={orderNumber}
-        amount={orderTotal}
-        onPaymentSuccess={handlePaymentSuccess}
-        onBack={() => {
-          setIsPaymentOpen(false);
-          setIsCheckoutOpen(true);
-        }}
-      />
-
-      <Toaster position="top-center" />
-      
-      <LoginModal
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-        onLogin={handleLogin}
-        onSwitchToRegister={() => {
-          setIsLoginOpen(false);
-          setIsRegisterOpen(true);
-        }}
-      />
-      
-      <RegisterModal
-        isOpen={isRegisterOpen}
-        onClose={() => setIsRegisterOpen(false)}
-        onRegister={handleRegister}
-        onSwitchToLogin={() => {
-          setIsRegisterOpen(false);
-          setIsLoginOpen(true);
-        }}
-        onTermsClick={() => setIsTermsModalOpen(true)}
-        onPolicyClick={() => setIsPolicyModalOpen(true)}
-      />
-      
-      {currentUser && (
-        <UserProfileModal
-          isOpen={isProfileOpen}
-          onClose={() => setIsProfileOpen(false)}
-          user={currentUser}
-          orders={userOrders}
-          reports={userReports}
-          onUpdateProfile={handleUpdateProfile}
-          onLogout={handleLogout}
-          onAddProduct={handleAddProduct}
-          onAddReport={handleAddReport}
+          } 
         />
-      )}
-      
-      <ProductListPage
-        isOpen={isProductListOpen}
-        onClose={() => {
-          setIsProductListOpen(false);
-          setSelectedCategory(undefined);
-          setSearchQuery('');
-        }}
-        products={products}
-        onAddToCart={handleAddToCart}
-        cartItemsCount={cartItemsCount}
-        onCartClick={() => setIsCartOpen(true)}
-        isLoggedIn={isLoggedIn}
-        userName={currentUser?.name}
-        userAvatar={currentUser?.avatar}
-        userType={currentUser?.userType}
-        onLoginClick={() => setIsLoginOpen(true)}
-        onRegisterClick={() => setIsRegisterOpen(true)}
-        onProfileClick={() => setIsProfileOpen(true)}
-        onLogout={handleLogout}
-        initialCategory={selectedCategory}
-        onProductClick={handleProductClick}
-        onFavoritesClick={() => setIsFavoritesOpen(true)}
-        favoritesCount={isBuyer ? favoritesCount : 0}
-        favoriteProductIds={favoriteProductIds}
-        onToggleProductFavorite={handleToggleProductFavorite}
-        onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)}
-        onAddressClick={() => setIsAddressModalOpen(true)}
-        onOrdersClick={() => setIsOrdersModalOpen(true)}
-        onReportsClick={() => setIsReportsModalOpen(true)}
-        onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)}
-        onSellerProductsClick={() => setIsSellerProductsModalOpen(true)}
-        onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)}
-        onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)}
-        onAboutClick={() => setIsAboutModalOpen(true)}
-        onContactClick={() => setIsContactModalOpen(true)}
-        onPolicyClick={() => setIsPolicyModalOpen(true)}
-        onTermsClick={() => setIsTermsModalOpen(true)}
-        searchQuery={searchQuery}
-      />
-      
-      <ProductDetailPage
-        isOpen={isProductDetailOpen}
-        onClose={() => setIsProductDetailOpen(false)}
-        product={selectedProduct}
-        onAddToCart={handleAddToCart}
-        onShopClick={(shopId) => {
-          const shop = shops.find(s => s.id === shopId);
-          if (shop) {
-            handleShopClick(shop);
-            setIsProductDetailOpen(false);
+
+        <Route 
+          path="/*" 
+          element={
+            <MainLayout
+              cartItemsCount={cartItemsCount}
+              onCartClick={() => setIsCartOpen(true)}
+              isLoggedIn={isLoggedIn}
+              currentUser={currentUser}
+              onLoginClick={() => setIsLoginOpen(true)}
+              onRegisterClick={() => setIsRegisterOpen(true)}
+              onProfileClick={() => setIsProfileOpen(true)}
+              onLogout={handleLogout}
+              onFavoritesClick={() => setIsFavoritesOpen(true)}
+              favoritesCount={isBuyer ? favoritesCount : 0}
+              onAddressClick={() => setIsAddressModalOpen(true)}
+              onOrdersClick={() => setIsOrdersModalOpen(true)}
+              onReportsClick={() => setIsReportsModalOpen(true)}
+              onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)}
+              onSellerProductsClick={() => setIsSellerProductsModalOpen(true)}
+              onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)}
+              onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)}
+              onAboutClick={() => setIsAboutModalOpen(true)}
+              onContactClick={() => setIsContactModalOpen(true)}
+              onPolicyClick={() => setIsPolicyModalOpen(true)}
+              onTermsClick={() => setIsTermsModalOpen(true)}
+              onSearch={handleSearch}
+            >
+              <Routes>
+                <Route path="/" element={<HomePage onAddToCart={handleAddToCart} favoriteProductIds={favoriteProductIds} onToggleProductFavorite={handleToggleProductFavorite} isBuyer={isBuyer} />} />
+                <Route path="/products" element={<ProductsPage products={products} onAddToCart={handleAddToCart} cartItemsCount={cartItemsCount} onCartClick={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} currentUser={currentUser} onLoginClick={() => setIsLoginOpen(true)} onRegisterClick={() => setIsRegisterOpen(true)} onProfileClick={() => setIsProfileOpen(true)} onLogout={handleLogout} onFavoritesClick={() => setIsFavoritesOpen(true)} favoritesCount={isBuyer ? favoritesCount : 0} favoriteProductIds={favoriteProductIds} onToggleProductFavorite={handleToggleProductFavorite} onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)} onAddressClick={() => setIsAddressModalOpen(true)} onOrdersClick={() => setIsOrdersModalOpen(true)} onReportsClick={() => setIsReportsModalOpen(true)} onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)} onSellerProductsClick={() => setIsSellerProductsModalOpen(true)} onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)} onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)} onAboutClick={() => setIsAboutModalOpen(true)} onContactClick={() => setIsContactModalOpen(true)} onPolicyClick={() => setIsPolicyModalOpen(true)} onTermsClick={() => setIsTermsModalOpen(true)} />} />
+                <Route path="/product/:id" element={<ProductDetailPageWrapper onAddToCart={handleAddToCart} onToggleFavorite={handleToggleProductFavorite} favoriteProductIds={favoriteProductIds} isBuyer={isBuyer} isLoggedIn={isLoggedIn} />} />
+                <Route path="/shops" element={<ShopsPage shops={shops} cartItemsCount={cartItemsCount} onCartClick={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} currentUser={currentUser} onLoginClick={() => setIsLoginOpen(true)} onRegisterClick={() => setIsRegisterOpen(true)} onProfileClick={() => setIsProfileOpen(true)} onLogout={handleLogout} onFavoritesClick={() => setIsFavoritesOpen(true)} favoritesCount={isBuyer ? favoritesCount : 0} onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)} onAddressClick={() => setIsAddressModalOpen(true)} onOrdersClick={() => setIsOrdersModalOpen(true)} onReportsClick={() => setIsReportsModalOpen(true)} onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)} onSellerProductsClick={() => setIsSellerProductsModalOpen(true)} onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)} onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)} onAboutClick={() => setIsAboutModalOpen(true)} onContactClick={() => setIsContactModalOpen(true)} onPolicyClick={() => setIsPolicyModalOpen(true)} onTermsClick={() => setIsTermsModalOpen(true)} />} />
+                <Route path="/shop/:id" element={<ShopDetailPageWrapper onAddToCart={handleAddToCart} onToggleFavorite={handleToggleShopFavorite} favoriteShopIds={favoriteShopIds} isBuyer={isBuyer} favoriteProductIds={favoriteProductIds} onToggleProductFavorite={handleToggleProductFavorite} cartItemsCount={cartItemsCount} onCartClick={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} currentUser={currentUser} onLoginClick={() => setIsLoginOpen(true)} onRegisterClick={() => setIsRegisterOpen(true)} onProfileClick={() => setIsProfileOpen(true)} onLogout={handleLogout} onCategoryClick={() => navigate('/products')} onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)} onFavoritesClick={() => setIsFavoritesOpen(true)} favoritesCount={isBuyer ? favoritesCount : 0} onAddressClick={() => setIsAddressModalOpen(true)} onOrdersClick={() => setIsOrdersModalOpen(true)} onReportsClick={() => setIsReportsModalOpen(true)} onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)} onSellerProductsClick={() => setIsSellerProductsModalOpen(true)} onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)} onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)} onAboutClick={() => setIsAboutModalOpen(true)} onContactClick={() => setIsContactModalOpen(true)} onPolicyClick={() => setIsPolicyModalOpen(true)} onTermsClick={() => setIsTermsModalOpen(true)} />} />
+              </Routes>
+            </MainLayout>
           }
-        }}
-        onToggleFavorite={handleToggleProductFavorite}
-        isFavorite={selectedProduct ? favoriteProductIds.includes(selectedProduct.id) : false}
-        showFavoriteButton={isBuyer}
-        isLoggedIn={isLoggedIn}
-      />
-      
-      <ShopDetailPage
-        isOpen={isShopDetailOpen}
-        onClose={() => setIsShopDetailOpen(false)}
-        shop={selectedShop}
-        shopProducts={selectedShop ? products.filter(p => p.shopId === selectedShop.id) : []}
-        onAddToCart={handleAddToCart}
-        onProductClick={handleProductClick}
-        onToggleFavorite={handleToggleShopFavorite}
-        isFavorite={selectedShop ? favoriteShopIds.includes(selectedShop.id) : false}
-        showFavoriteButton={isBuyer}
-        favoriteProducts={favoriteProductIds}
-        onToggleProductFavorite={handleToggleProductFavorite}
-        cartItemsCount={cartItemsCount}
-        onCartClick={() => setIsCartOpen(true)}
-        isLoggedIn={isLoggedIn}
-        userName={currentUser?.name}
-        userAvatar={currentUser?.avatar}
-        userType={currentUser?.userType}
-        onLoginClick={() => setIsLoginOpen(true)}
-        onRegisterClick={() => setIsRegisterOpen(true)}
-        onProfileClick={() => setIsProfileOpen(true)}
-        onLogout={handleLogout}
-        onCategoryClick={() => setIsProductListOpen(true)}
-        onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)}
-        onFavoritesClick={() => setIsFavoritesOpen(true)}
-        favoritesCount={isBuyer ? favoritesCount : 0}
-        onAddressClick={() => setIsAddressModalOpen(true)}
-        onOrdersClick={() => setIsOrdersModalOpen(true)}
-        onReportsClick={() => setIsReportsModalOpen(true)}
-        onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)}
-        onSellerProductsClick={() => setIsSellerProductsModalOpen(true)}
-        onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)}
-        onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)}
-        onAboutClick={() => setIsAboutModalOpen(true)}
-        onContactClick={() => setIsContactModalOpen(true)}
-        onPolicyClick={() => setIsPolicyModalOpen(true)}
-        onTermsClick={() => setIsTermsModalOpen(true)}
-      />
-      
-      <FavoritesModal
-        isOpen={isFavoritesOpen}
-        onClose={() => setIsFavoritesOpen(false)}
-        favoriteProducts={favoriteProducts}
-        favoriteShops={favoriteShops}
-        onAddToCart={handleAddToCart}
-        onProductClick={handleProductClick}
-        onShopClick={handleShopClick}
-        onToggleProductFavorite={handleToggleProductFavorite}
-        onToggleShopFavorite={handleToggleShopFavorite}
-      />
-      
+        />
+      </Routes>
+
+      <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cartItems} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} onCheckout={handleCheckout} />
+      <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} total={calculateTotal()} onConfirmOrder={handleConfirmOrder} userAddresses={currentUser?.addresses} userName={currentUser?.name} userPhone={currentUser?.phone} />
+      <OrderSuccessModal isOpen={isOrderSuccessOpen} onClose={() => setIsOrderSuccessOpen(false)} orderNumber={orderNumber} />
+      <PaymentModal isOpen={isPaymentOpen} onClose={() => setIsPaymentOpen(false)} paymentMethod={paymentMethod} orderNumber={orderNumber} amount={orderTotal} onPaymentSuccess={handlePaymentSuccess} onBack={() => { setIsPaymentOpen(false); setIsCheckoutOpen(true); }} />
+      <Toaster position="top-center" />
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onSwitchToRegister={() => { setIsLoginOpen(false); setIsRegisterOpen(true); }} />
+      <RegisterModal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} onRegister={handleRegister} onSwitchToLogin={() => { setIsRegisterOpen(false); setIsLoginOpen(true); }} onTermsClick={() => setIsTermsModalOpen(true)} onPolicyClick={() => setIsPolicyModalOpen(true)} />
+      {currentUser && <UserProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={currentUser} orders={userOrders} reports={userReports} onUpdateProfile={handleUpdateProfile} onLogout={handleLogout} onAddProduct={handleAddProduct} onAddReport={handleAddReport} />}
+      <FavoritesModal isOpen={isFavoritesOpen} onClose={() => setIsFavoritesOpen(false)} favoriteProducts={favoriteProducts} favoriteShops={favoriteShops} onAddToCart={handleAddToCart} onProductClick={(product) => { navigate(`/product/${product.id}`); setIsFavoritesOpen(false); }} onShopClick={(shop) => { navigate(`/shop/${shop.id}`); setIsFavoritesOpen(false); }} onToggleProductFavorite={handleToggleProductFavorite} onToggleShopFavorite={handleToggleShopFavorite} />
       <AddressModal isOpen={isAddressModalOpen} onClose={() => setIsAddressModalOpen(false)} />
       <OrdersModal isOpen={isOrdersModalOpen} onClose={() => setIsOrdersModalOpen(false)} />
       <ReportsModal isOpen={isReportsModalOpen} onClose={() => setIsReportsModalOpen(false)} />
@@ -728,37 +412,18 @@ export default function App() {
       <SellerProductsModal isOpen={isSellerProductsModalOpen} onClose={() => setIsSellerProductsModalOpen(false)} />
       <SellerStatisticsModal isOpen={isSellerStatisticsModalOpen} onClose={() => setIsSellerStatisticsModalOpen(false)} />
       <SellerPromotionsModal isOpen={isSellerPromotionsModalOpen} onClose={() => setIsSellerPromotionsModalOpen(false)} />
-      
-      <ShopListPage
-        isOpen={isShopListOpen}
-        onClose={() => setIsShopListOpen(false)}
-        shops={shops}
-        cartItemsCount={cartItemsCount}
-        onCartClick={() => setIsCartOpen(true)}
-        isLoggedIn={isLoggedIn}
-        userName={currentUser?.name}
-        userAvatar={currentUser?.avatar}
-        userType={currentUser?.userType}
-        onLoginClick={() => setIsLoginOpen(true)}
-        onRegisterClick={() => setIsRegisterOpen(true)}
-        onProfileClick={() => setIsProfileOpen(true)}
-        onLogout={handleLogout}
-        onShopClick={handleShopClick}
-        onFavoritesClick={() => setIsFavoritesOpen(true)}
-        favoritesCount={isBuyer ? favoritesCount : 0}
-        onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)}
-        onAddressClick={() => setIsAddressModalOpen(true)}
-        onOrdersClick={() => setIsOrdersModalOpen(true)}
-        onReportsClick={() => setIsReportsModalOpen(true)}
-        onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)}
-        onSellerProductsClick={() => setIsSellerProductsModalOpen(true)}
-        onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)}
-        onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)}
-        onAboutClick={() => setIsAboutModalOpen(true)}
-        onContactClick={() => setIsContactModalOpen(true)}
-        onPolicyClick={() => setIsPolicyModalOpen(true)}
-        onTermsClick={() => setIsTermsModalOpen(true)}
-      />
-    </div>
+      <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
+      <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
+      <PolicyModal isOpen={isPolicyModalOpen} onClose={() => setIsPolicyModalOpen(false)} />
+      <TermsModal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} />
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }
