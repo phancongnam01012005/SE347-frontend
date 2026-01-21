@@ -1,0 +1,84 @@
+.order-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.order-title {
+    font-size: 28px;
+    margin-bottom: 24px;
+}
+
+.order-loading,
+.order-error,
+.order-empty {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 16px;
+}
+
+.order-error {
+    color: red;
+}
+
+.order-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.order-id {
+    font-weight: 600;
+    font-size: 14px;
+    color: #555;
+}
+
+.order-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Status colors */
+.order-status.PAID {
+    background: #e6f7ed;
+    color: #2e7d32;
+}
+
+.order-status.PAYMENT_PENDING {
+    background: #fff4e5;
+    color: #ed6c02;
+}
+
+.order-status.CANCELLED {
+    background: #fdecea;
+    color: #d32f2f;
+}
+
+.order-body p,
+.order-footer p {
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.order-footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed #ddd;
+}
