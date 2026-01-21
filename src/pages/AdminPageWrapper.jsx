@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { AdminPage } from "../components/page";
+import { toast } from "sonner";
 
 export function AdminPageWrapper({
   isLoggedIn,

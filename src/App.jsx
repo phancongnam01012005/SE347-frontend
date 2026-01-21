@@ -41,7 +41,7 @@ import {
 import { ShoppingCart } from "./components/cart";
 
 // Data and types
-import { products, shops } from "./data/mockData";
+import { shops } from "./data/mockData";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 
@@ -86,19 +86,16 @@ function AppContent() {
   const [favoriteProductIds, setFavoriteProductIds] = useState([]);
   const [favoriteShopIds, setFavoriteShopIds] = useState([]);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
-
+// Thêm vào cùng nhóm với các useState khác
+  const [products, setProducts] = useState([]);
+  
   useEffect(() => {
   const initializeAuth = async () => {
     const token = localStorage.getItem("accessToken");
     if (token) {
       try {
-        // 1. Gắn token vào axios header cho các request sau này
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        
-        // 2. Giải mã để lấy sơ bộ thông tin (role, id)
         const decoded = jwtDecode(token);
-        
-        // 3. Gọi API lấy thông tin chi tiết
         const userRes = await api.get("/user");
         const u = userRes.data;
 
@@ -112,15 +109,59 @@ function AppContent() {
         });
         setIsLoggedIn(true);
       } catch (err) {
-        console.error("Token expired or invalid", err);
+        console.error("Token invalid", err);
         localStorage.removeItem("accessToken");
-        delete api.defaults.headers.common["Authorization"];
-        setIsLoggedIn(false);
       }
+    }
+    setIsLoading(false); // Chốt trạng thái sau khi check xong
+  };
+  initializeAuth();
+}, []);
+//   useEffect(() => {
+//   const fetchProducts = async () => {
+//     try {
+//       const res = await api.get("/public/product/all");
+//       const mappedProducts = res.data.map((p) => ({
+//         id: p.productId,
+//         name: p.productName,
+//         price: p.price,
+//         image: p.image_url,
+//         shopId: p.shopId,
+//         shopName: p.shopName,
+//       }));
+
+//       setProducts(mappedProducts);
+//     } catch (err) {
+//       console.error("Load sản phẩm fail:", err);
+//       toast.error("Không tải được danh sách sản phẩm");
+//     }
+//   };
+
+//   fetchProducts();
+  // }, []);
+  useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res = await api.get("/public/product/all");
+
+      const mappedProducts = res.data.map((p) => ({
+        id: p.productId,
+        name: p.productName,
+        price: p.price,
+        image: p.image_url,
+        shopId: p.shopId,
+        shopName: p.shopName,
+        category: p.categoryName, // nếu BE có
+      }));
+
+      setProducts(mappedProducts);
+    } catch (err) {
+      console.error("Load sản phẩm fail:", err);
+      toast.error("Không tải được danh sách sản phẩm");
     }
   };
 
-  initializeAuth();
+  fetchProducts();
 }, []);
   const calculateTotal = () => {
     const subtotal = cartItems.reduce(
@@ -282,9 +323,15 @@ const handleLogin = async (email, password) => {
       userType: roleFromToken?.toLowerCase(), // Lấy role từ token
       addresses: u.addresses || [],
     });
+      setIsLoggedIn(true);
+      setIsLoginOpen(false);
+    if (roleFromToken?.toLowerCase() === 'admin')
+    {
+      navigate("/admin");
+      toast.success("Hello admin");
+      return;
+    }
 
-    setIsLoggedIn(true);
-    setIsLoginOpen(false);
     toast.success(`Xin chào ${roleFromToken?.toLowerCase()} 👋`);
 
   } catch (err) {
