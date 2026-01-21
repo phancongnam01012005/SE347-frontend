@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState ,useEffect} from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -168,13 +168,25 @@ export function CheckoutModal({
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    const orderData = {
-      ...formData,
-      itemPromotions: Array.from(itemPromotions.values())
-    };
-    onConfirmOrder(orderData);
+  e.preventDefault();
+
+  if (!formData.address.trim()) {
+    toast.error('Địa chỉ giao hàng không được để trống');
+    return;
+  }
+
+  const payload = {
+    shippingAddress: formData.address,
+    paymentMethod: formData.paymentMethod,
+    items: items.map(item => ({
+      productid: item.id,
+      qty: item.quantity
+    }))
   };
+
+  onConfirmOrder(payload);
+};
+
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));

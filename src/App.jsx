@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+import api from "./service/api";
 // Layout components
 import { Header, Footer } from "./components/layout";
 
@@ -31,18 +32,20 @@ import {
   SellerOrdersModal, 
   SellerProductsModal, 
   SellerStatisticsModal, 
-  SellerPromotionsModal
+  SellerPromotionsModal,
 } from "./components/modal";
 
 // Cart components
 import { ShoppingCart } from "./components/cart";
 
 // Data
-import { categories, products, shops } from "./data/mockData";
+import { categories, shops } from "./data/mockData";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 
+
 export default function App() {
+  const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -97,6 +100,70 @@ export default function App() {
   
   // Admin dashboard state
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
+
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const tokenFromUrl = params.get("token");
+  const token = tokenFromUrl || localStorage.getItem("accessToken");
+
+  if (!token) return;
+
+  localStorage.setItem("accessToken", token);
+  api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+  // 👉 GỌI BE XÁC NHẬN TOKEN + LẤY USER
+  api.get("/user")
+    .then(res => {
+      const u = res.data;
+
+      setCurrentUser({
+        id: u.userID,
+        name: u.name,
+        email: u.email,
+        phone: u.phone,
+        userType: u.accountType?.toLowerCase(),
+        addresses: u.addresses || [],
+      });
+
+      setIsLoggedIn(true);
+      setIsLoginOpen(false);
+      toast.success(`Xin chào ${u.name} 👋`);
+    })
+    .catch(() => {
+      localStorage.removeItem("accessToken");
+      setIsLoggedIn(false);
+    });
+
+  if (tokenFromUrl) {
+    window.history.replaceState({}, document.title, "/");
+  }
+  }, []);
+  
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res = await api.get("/public/product/all");
+
+      const mappedProducts = res.data.map((p) => ({
+        id: p.productId,
+        name: p.productName,
+        price: p.price,
+        image: p.image_url,
+        shopId: p.shopId,
+        shopName: p.shopName,
+        category: p.categoryName, // nếu BE có
+      }));
+
+      setProducts(mappedProducts);
+    } catch (err) {
+      console.error("Load sản phẩm fail:", err);
+      toast.error("Không tải được danh sách sản phẩm");
+    }
+  };
+
+  fetchProducts();
+}, []);
+
 
   const calculateTotal = () => {
     const subtotal = cartItems.reduce(
@@ -167,40 +234,45 @@ export default function App() {
     setIsCheckoutOpen(true);
   };
 
-  const handleConfirmOrder = (orderData) => {
-    const newOrderNumber = `SF${Date.now().toString().slice(-8)}`;
-    setOrderNumber(newOrderNumber);
-    setOrderTotal(calculateTotal());
-    
-    if (orderData.paymentMethod === 'momo' || orderData.paymentMethod === 'zalopay') {
-      setPaymentMethod(orderData.paymentMethod);
-      setIsCheckoutOpen(false);
-      setIsPaymentOpen(true);
+  
+  const handleConfirmOrder = async (orderData) => {
+  try {
+    const orderRequest = {
+      userId: currentUser.id,
+      shippingAddress: orderData.shippingAddress,
+      items: orderData.items
+    };
+
+    const orderResponse = await api.post(
+      "/order/create-new-order",
+      orderRequest
+    );
+
+    const { orderId } = orderResponse.data;
+
+    // MOMO
+    if (orderData.paymentMethod === "momo") {
+      const paymentResponse = await api.post("/public/api/payment/momo", {
+        orderId,
+        amount: calculateTotal(),
+      });
+
+      setCartItems([]);
+      window.location.href = paymentResponse.data.payUrl;
       return;
     }
-    
-    const newOrder = {
-      id: Date.now().toString(),
-      orderNumber: newOrderNumber,
-      date: new Date().toLocaleString('vi-VN'),
-      total: calculateTotal(),
-      status: 'pending',
-      items: cartItems.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price
-      }))
-    };
-    
-    if (isLoggedIn) {
-      setUserOrders(prev => [newOrder, ...prev]);
-    }
 
+    // COD
     setCartItems([]);
     setIsCheckoutOpen(false);
     setIsOrderSuccessOpen(true);
-  };
-  
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Có lỗi khi tạo đơn");
+  }
+};
+
   const handlePaymentSuccess = () => {
     const newOrder = {
       id: Date.now().toString(),
@@ -225,56 +297,59 @@ export default function App() {
     toast.success('Thanh toán thành công!');
   };
   
-  const handleLogin = (email, password) => {
-    if (email === 'admin@foodieshop.com' && password === 'admin123') {
-      const adminUser = {
-        id: 'admin',
-        name: 'Quản trị viên',
-        email: 'admin@foodieshop.com',
-        phone: '0999999999',
-        userType: 'admin',
-        addresses: []
-      };
-      setCurrentUser(adminUser);
-      setIsLoggedIn(true);
-      setIsLoginOpen(false);
-      setIsAdminDashboardOpen(true);
-      toast.success(`Chào mừng ${adminUser.name}!`);
-      return;
-    }
-    
-    const mockUser = {
-      id: '1',
-      name: 'Nguyễn Văn A',
-      email: email,
-      phone: '0123456789',
-      userType: 'buyer',
-      addresses: [
-        { id: '1', label: 'Nhà riêng', address: '123 Đường ABC, Phường 1, Quận 1, TP.HCM', isDefault: true },
-        { id: '2', label: 'Văn phòng', address: '456 Đường XYZ, Phường 2, Quận 3, TP.HCM', isDefault: false }
-      ]
-    };
-    setCurrentUser(mockUser);
+  const handleLogin = async (email, password) => {
+  try {
+    const res = await api.post("/public/login", {
+      email,
+      password,
+    });
+
+    const { token } = res.data;
+    localStorage.setItem("accessToken", token);
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    const userRes = await api.get("/user");
+    const u = userRes.data;
+
+    setCurrentUser({
+      id: u.userID,
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      userType: u.accountType?.toLowerCase(),
+      addresses: u.addresses || [],
+    });
+
     setIsLoggedIn(true);
     setIsLoginOpen(false);
-    toast.success(`Chào mừng ${mockUser.name}!`);
-  };
-  
-  const handleRegister = (name, email, phone, password, userType) => {
-    const newUser = {
-      id: Date.now().toString(),
-      name: name,
-      email: email,
-      phone: phone,
-      userType: userType,
-      addresses: []
-    };
-    setCurrentUser(newUser);
-    setIsLoggedIn(true);
-    setIsRegisterOpen(false);
-    toast.success(`Đăng ký thành công! Chào mừng ${name}!`);
-  };
-  
+
+    toast.success(`Xin chào ${u.name} 👋`);
+  } catch (err) {
+    console.error(err);
+    toast.error("Sai email hoặc mật khẩu");
+  }
+};
+
+  const handleRegister = async (name, email, phone, password, userType) => {
+  try {
+    const res = await api.post("/public/register", {
+      name,
+      email,
+      phone,
+      password,
+      accountType:
+        userType.charAt(0).toUpperCase() + userType.slice(1),
+    });
+
+    toast.success("Đăng ký thành công!");
+    window.location.reload();
+  } catch (err) {
+    console.error(err);
+    toast.error("Đăng ký thất bại");
+  }
+};
+
+
   const handleLogout = () => {
     setCurrentUser(null);
     setIsLoggedIn(false);

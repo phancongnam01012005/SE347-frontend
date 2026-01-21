@@ -24,9 +24,9 @@ export function LoginModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Gọi hàm onLogin được truyền từ cha với các tham số email và password
     onLogin(email, password);
   };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -124,11 +124,15 @@ export function LoginModal({
             <Button
               type="button"
               variant="outline"
-              className="h-11 border-gray-200 hover:bg-red-50 hover:border-red-200"
+              className="h-11 border-gray-200"
+              onClick={() => {
+                window.location.href = "http://localhost:8000/oauth2/authorization/google";
+              }}
             >
               <Mail className="w-4 h-4 mr-2 text-[#DB4437]" />
               <span className="text-xs md:text-sm">Google</span>
             </Button>
+
           </div>
 
           <div className="text-center text-sm pt-4 border-t border-dashed">
