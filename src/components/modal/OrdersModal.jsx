@@ -1,4 +1,4 @@
-import { useState , useEffect} from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -6,25 +6,46 @@ import { Package, Truck, CheckCircle, XCircle, Clock, Eye, Trash2 } from 'lucide
 import { toast } from 'sonner';
 
 export function OrdersModal({ isOpen, onClose }) {
+  const [orders, setOrders] = useState([
+    {
+      id: '1',
+      orderNumber: 'ORD20260118001',
+      date: '18/01/2026 14:30',
+      status: 'delivered',
+      items: [
+        {
+          name: 'Trà Sữa Trân Châu Đường Đen',
+          quantity: 2,
+          price: 35000,
+          image: 'https://images.unsplash.com/photo-1670468642364-6cacadfb7bb0?w=100&h=100&fit=crop'
+        }
+      ],
+      total: 85000,
+      shippingAddress: '123 Nguyễn Huệ, Quận 1, TP.HCM',
+      paymentMethod: 'COD'
+    },
+    {
+      id: '2',
+      orderNumber: 'ORD20260117002',
+      date: '17/01/2026 10:15',
+      status: 'shipping',
+      items: [
+        {
+          name: 'Pizza Hải Sản Cao Cấp',
+          quantity: 1,
+          price: 129000,
+          image: 'https://images.unsplash.com/photo-1544982503-9f984c14501a?w=100&h=100&fit=crop'
+        }
+      ],
+      total: 129000,
+      shippingAddress: '456 Lê Lợi, Quận 3, TP.HCM',
+      paymentMethod: 'Ví MoMo'
+    }
+  ]);
 
-  const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
-  useEffect(() => {
-      const fetchOrders = async () => {
-        try {
-          const res = await api.get("/order/order-by-user");
-          setOrders(res.data);
-        } catch (err) {
-          console.error(err);
-          setError("Không thể tải lịch sử đơn hàng");
-        } finally {
-          setLoading(false);
-        }
-      };
 
-      fetchOrders();
-    }, []);
   const statusConfig = {
     pending: { label: 'Chờ xác nhận', icon: Clock, color: 'bg-yellow-500' },
     processing: { label: 'Đang xử lý', icon: Package, color: 'bg-blue-500' },
