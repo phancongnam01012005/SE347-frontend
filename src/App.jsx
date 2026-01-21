@@ -14,24 +14,24 @@ import { CategoryCard, ProductCard, ShopCard } from "./components/card";
 import { ProductDetailPage, ProductListPage, ShopDetailPage, ShopListPage, AdminPage } from "./components/page";
 
 // Modal components
-import { 
-  FavoritesModal, 
-  AboutModal, 
-  ContactModal, 
+import {
+  FavoritesModal,
+  AboutModal,
+  ContactModal,
   AddressModal,
   LoginModal,
   PolicyModal,
   TermsModal,
   OrderSuccessModal,
-  CheckoutModal, 
-  PaymentModal, 
-  RegisterModal, 
-  UserProfileModal, 
-  OrdersModal, 
-  ReportsModal, 
-  SellerOrdersModal, 
-  SellerProductsModal, 
-  SellerStatisticsModal, 
+  CheckoutModal,
+  PaymentModal,
+  RegisterModal,
+  UserProfileModal,
+  OrdersModal,
+  ReportsModal,
+  SellerOrdersModal,
+  SellerProductsModal,
+  SellerStatisticsModal,
   SellerPromotionsModal,
 } from "./components/modal";
 
@@ -42,7 +42,6 @@ import { ShoppingCart } from "./components/cart";
 import { categories, shops } from "./data/mockData";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
-
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -686,7 +685,7 @@ useEffect(() => {
           onAddReport={handleAddReport}
         />
       )}
-      
+
       <ProductListPage
         isOpen={isProductListOpen}
         onClose={() => {
@@ -726,7 +725,7 @@ useEffect(() => {
         onTermsClick={() => setIsTermsModalOpen(true)}
         searchQuery={searchQuery}
       />
-      
+
       <ProductDetailPage
         isOpen={isProductDetailOpen}
         onClose={() => setIsProductDetailOpen(false)}
@@ -744,7 +743,7 @@ useEffect(() => {
         showFavoriteButton={isBuyer}
         isLoggedIn={isLoggedIn}
       />
-      
+
       <ShopDetailPage
         isOpen={isShopDetailOpen}
         onClose={() => setIsShopDetailOpen(false)}
@@ -783,7 +782,7 @@ useEffect(() => {
         onPolicyClick={() => setIsPolicyModalOpen(true)}
         onTermsClick={() => setIsTermsModalOpen(true)}
       />
-      
+
       <FavoritesModal
         isOpen={isFavoritesOpen}
         onClose={() => setIsFavoritesOpen(false)}
@@ -795,7 +794,7 @@ useEffect(() => {
         onToggleProductFavorite={handleToggleProductFavorite}
         onToggleShopFavorite={handleToggleShopFavorite}
       />
-      
+
       <AddressModal isOpen={isAddressModalOpen} onClose={() => setIsAddressModalOpen(false)} />
       <OrdersModal isOpen={isOrdersModalOpen} onClose={() => setIsOrdersModalOpen(false)} />
       <ReportsModal isOpen={isReportsModalOpen} onClose={() => setIsReportsModalOpen(false)} />
@@ -803,7 +802,7 @@ useEffect(() => {
       <SellerProductsModal isOpen={isSellerProductsModalOpen} onClose={() => setIsSellerProductsModalOpen(false)} />
       <SellerStatisticsModal isOpen={isSellerStatisticsModalOpen} onClose={() => setIsSellerStatisticsModalOpen(false)} />
       <SellerPromotionsModal isOpen={isSellerPromotionsModalOpen} onClose={() => setIsSellerPromotionsModalOpen(false)} />
-      
+
       <ShopListPage
         isOpen={isShopListOpen}
         onClose={() => setIsShopListOpen(false)}
