@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"; 
-
+import api from "./service/api";
+import { jwtDecode } from "jwt-decode";
 // Layout
 import { MainLayout } from "./layouts/MainLayout";
 
@@ -45,8 +46,9 @@ import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 
 function AppContent() {
-  const navigate = useNavigate();
   
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -85,6 +87,41 @@ function AppContent() {
   const [favoriteShopIds, setFavoriteShopIds] = useState([]);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
 
+  useEffect(() => {
+  const initializeAuth = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      try {
+        // 1. Gắn token vào axios header cho các request sau này
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        
+        // 2. Giải mã để lấy sơ bộ thông tin (role, id)
+        const decoded = jwtDecode(token);
+        
+        // 3. Gọi API lấy thông tin chi tiết
+        const userRes = await api.get("/user");
+        const u = userRes.data;
+
+        setCurrentUser({
+          id: decoded.userId,
+          name: u.name,
+          email: u.email,
+          phone: u.phone,
+          userType: decoded.role?.toLowerCase(),
+          addresses: u.addresses || [],
+        });
+        setIsLoggedIn(true);
+      } catch (err) {
+        console.error("Token expired or invalid", err);
+        localStorage.removeItem("accessToken");
+        delete api.defaults.headers.common["Authorization"];
+        setIsLoggedIn(false);
+      }
+    }
+  };
+
+  initializeAuth();
+}, []);
   const calculateTotal = () => {
     const subtotal = cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -154,39 +191,43 @@ function AppContent() {
     setIsCheckoutOpen(true);
   };
 
-  const handleConfirmOrder = (orderData) => {
-    const newOrderNumber = `SF${Date.now().toString().slice(-8)}`;
-    setOrderNumber(newOrderNumber);
-    setOrderTotal(calculateTotal());
-    
-    if (orderData.paymentMethod === 'momo' || orderData.paymentMethod === 'zalopay') {
-      setPaymentMethod(orderData.paymentMethod);
-      setIsCheckoutOpen(false);
-      setIsPaymentOpen(true);
+  const handleConfirmOrder = async (orderData) => {
+  try {
+    const orderRequest = {
+      userId: currentUser.id,
+      shippingAddress: orderData.shippingAddress,
+      items: orderData.items
+    };
+
+    const orderResponse = await api.post(
+      "/order/create-new-order",
+      orderRequest
+    );
+
+    const { orderId } = orderResponse.data;
+
+    // MOMO
+    if (orderData.paymentMethod === "momo") {
+      const paymentResponse = await api.post("/public/api/payment/momo", {
+        orderId,
+        amount: calculateTotal(),
+      });
+
+      setCartItems([]);
+      window.location.href = paymentResponse.data.payUrl;
       return;
     }
-    
-    const newOrder = {
-      id: Date.now().toString(),
-      orderNumber: newOrderNumber,
-      date: new Date().toLocaleString('vi-VN'),
-      total: calculateTotal(),
-      status: 'pending',
-      items: cartItems.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price
-      }))
-    };
-    
-    if (isLoggedIn) {
-      setUserOrders(prev => [newOrder, ...prev]);
-    }
 
+    // COD
     setCartItems([]);
     setIsCheckoutOpen(false);
     setIsOrderSuccessOpen(true);
-  };
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Có lỗi khi tạo đơn");
+  }
+};
   
   const handlePaymentSuccess = () => {
     const newOrder = {
@@ -212,67 +253,89 @@ function AppContent() {
     toast.success('Thanh toán thành công!');
   };
   
-  const handleLogin = (email, password) => {
-    if (email === 'admin@foodieshop.com' && password === 'admin123') {
-      const adminUser = {
-        id: 'admin',
-        name: 'Quản trị viên',
-        email: 'admin@foodieshop.com',
-        phone: '0999999999',
-        userType: 'admin',
-        addresses: []
-      };
-      setCurrentUser(adminUser);
-      setIsLoggedIn(true);
-      setIsLoginOpen(false);
-      navigate('/admin');
-      toast.success(`Chào mừng ${adminUser.name}!`);
-      return;
-    }
+
+const handleLogin = async (email, password) => {
+  try {
+    const res = await api.post("/public/login", { email, password });
+    const { token } = res.data;
+
+    // 1. Lưu token và set Header
+    localStorage.setItem("accessToken", token);
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    // 2. Giải mã token để lấy userId
+    const decoded = jwtDecode(token);
     
-    const mockUser = {
-      id: '1',
-      name: 'Nguyễn Văn A',
-      email: email,
-      phone: '0123456789',
-      userType: 'buyer',
-      addresses: [
-        { id: '1', label: 'Nhà riêng', address: '123 Đường ABC, Phường 1, Quận 1, TP.HCM', isDefault: true },
-        { id: '2', label: 'Văn phòng', address: '456 Đường XYZ, Phường 2, Quận 3, TP.HCM', isDefault: false }
-      ]
-    };
-    
-    setCurrentUser(mockUser);
+    // Lưu ý: Tên field phải khớp với claim("userId", userId) ở Java
+    const userIdFromToken = decoded.userId; 
+    const roleFromToken = decoded.role;
+
+    // 3. Lấy thông tin chi tiết khác từ API /user
+    const userRes = await api.get("/user");
+    const u = userRes.data;
+
+    setCurrentUser({
+      id: userIdFromToken, // Lấy trực tiếp từ token
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      userType: roleFromToken?.toLowerCase(), // Lấy role từ token
+      addresses: u.addresses || [],
+    });
+
     setIsLoggedIn(true);
     setIsLoginOpen(false);
-    toast.success(`Chào mừng ${mockUser.name}!`);
-  };
-  
-  const handleRegister = (name, email, phone, password, userType) => {
+    toast.success(`Xin chào ${roleFromToken?.toLowerCase()} 👋`);
+
+  } catch (err) {
+    console.error("Login error:", err);
+    toast.error("Sai email hoặc mật khẩu");
+  }
+};
+const handleRegister = async (name, email, phone, password, userType) => {
+  try {
+    // 1. Chuẩn hóa dữ liệu gửi đi
     const newUser = {
-      id: Date.now().toString(),
-      name: name,
-      email: email,
-      phone: phone,
-      userType: userType,
-      addresses: []
+      name,
+      email,
+      password,
+      phone,
+      accountType: userType.charAt(0).toUpperCase() + userType.slice(1),
     };
+
+    // 2. Gọi API đăng ký
+    await api.post("public/register", newUser);
+
+    // 3. THAY VÌ set state thủ công, hãy gọi hàm login đã viết sẵn
+    // Điều này giúp lấy Token, giải mã Role và ID chuẩn xác nhất
+    toast.success("Đăng ký thành công! Đang đăng nhập...");
+    await handleLogin(email, password); 
     
-    setCurrentUser(newUser);
-    setIsLoggedIn(true);
     setIsRegisterOpen(false);
-    toast.success(`Đăng ký thành công! Chào mừng ${name}!`);
-  };
+
+  } catch (err) {
+    console.error("Register error:", err);
+    const errorMsg = err.response?.data?.message || "Đăng ký thất bại";
+    toast.error(errorMsg);
+  }
+};
   
   const handleLogout = () => {
-    setCurrentUser(null);
-    setIsLoggedIn(false);
-    setUserOrders([]);
-    setUserReports([]);
-    setIsProfileOpen(false);
-    navigate('/');
-    toast.success('Đã đăng xuất thành công');
-  };
+  // 1. Xóa dấu vết đăng nhập
+  localStorage.removeItem("accessToken");
+  delete api.defaults.headers.common["Authorization"];
+  
+  // 2. Reset states
+  setCurrentUser(null);
+  setIsLoggedIn(false);
+  setUserOrders([]);
+  setUserReports([]);
+  
+  // 3. Điều hướng về trang chủ
+  setIsProfileOpen(false);
+  navigate('/');
+  toast.success('Đã đăng xuất thành công');
+};
   
   const handleUpdateProfile = (updatedUser) => {
     if (currentUser) {
