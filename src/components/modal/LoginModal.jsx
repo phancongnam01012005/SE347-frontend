@@ -24,8 +24,12 @@ export function LoginModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Gọi hàm onLogin được truyền từ cha với các tham số email và password
     onLogin(email, password);
+  };
+
+  const handleGoogleLogin = () => {
+    // Chuyển hướng sang Backend để bắt đầu quy trình OAuth2
+    window.location.href = "http://localhost:8000/oauth2/authorization/google";
   };
 
   return (
@@ -56,7 +60,7 @@ export function LoginModal({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="login-password" text-sm font-semibold>Mật khẩu</Label>
+              <Label htmlFor="login-password">Mật khẩu</Label>
             </div>
             <div className="relative">
               <Input
@@ -73,11 +77,7 @@ export function LoginModal({
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
@@ -124,10 +124,11 @@ export function LoginModal({
             <Button
               type="button"
               variant="outline"
-              className="h-11 border-gray-200 hover:bg-red-50 hover:border-red-200"
+              className="h-11 border-gray-200"
+              onClick={handleGoogleLogin}
             >
               <Mail className="w-4 h-4 mr-2 text-[#DB4437]" />
-              <span className="text-xs md:text-sm">Google</span>
+              <span>Google</span>
             </Button>
           </div>
 

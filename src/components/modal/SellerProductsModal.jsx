@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import api from '../../service/api';
 
 
 export function SellerProductsModal({ isOpen, onClose }) {
@@ -90,31 +91,33 @@ export function SellerProductsModal({ isOpen, onClose }) {
     }
   };
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.price || !formData.category) {
-      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
-      return;
-    }
-
-    if (editingProduct) {
-      setProducts(products.map(p =>
-        p.id === editingProduct.id ? { ...p, ...formData } : p
-      ));
-      toast.success('Cập nhật sản phẩm thành công');
-    } else {
-      const newProduct = {
-        id: Date.now().toString(),
-        ...formData,
-        sold: 0
-      };
-      setProducts([newProduct, ...products]);
-      toast.success('Đã thêm sản phẩm mới vào thực đơn');
-    }
-
-    setIsEditing(false);
-    setEditingProduct(null);
+  const handleSave = async (e) => {
+  e.preventDefault();
+  
+  // Chuẩn bị dữ liệu khớp với ProductResquestDTO của Java
+  const payload = {
+    productName: formData.name,      // Khớp với private String productName
+    price: formData.price,          // Khớp với private BigDecimal price
+    image_url: formData.image,      // Khớp với private String image_url
+    stockQuantity: formData.stock,  // Khớp với private int stockQuantity
+    description: formData.description
   };
+
+  try {
+    if (editingProduct) {
+      toast.success('Cập nhật thành công');
+    } else {
+      // Gọi API POST /add của bạn
+      const response = await api.post('public/product/add', payload);
+
+      toast.success(response.data.message);
+    }
+    // Sau khi gọi API thành công thì mới đóng modal hoặc load lại data
+    setIsEditing(false);
+  } catch (error) {
+    toast.error('Có lỗi xảy ra khi lưu sản phẩm');
+  }
+};
 
   const handleCancel = () => {
     setIsEditing(false);

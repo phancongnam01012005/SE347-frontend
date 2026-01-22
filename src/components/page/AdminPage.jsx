@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState ,useEffect} from 'react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
@@ -38,38 +38,27 @@ import {
 } from 'lucide-react';
 import { ProductDetailPage } from './ProductDetailPage';
 import { ShopDetailPage } from './ShopDetailPage';
+import api from '../../service/api';
 
 export function AdminPage({ currentUser, onLogout }) {
-  // Mock data
-  const [users, setUsers] = useState([
-    {
-      id: '1',
-      name: 'Nguyễn Văn A',
-      email: 'buyer@example.com',
-      phone: '0123456789',
-      userType: 'buyer',
-      status: 'active',
-      createdAt: '2024-01-15'
-    },
-    {
-      id: '2',
-      name: 'Trần Thị B',
-      email: 'seller@example.com',
-      phone: '0987654321',
-      userType: 'seller',
-      status: 'active',
-      createdAt: '2024-01-20'
-    },
-    {
-      id: '3',
-      name: 'Lê Văn C',
-      email: 'buyer2@example.com',
-      phone: '0912345678',
-      userType: 'buyer',
-      status: 'active',
-      createdAt: '2024-01-22'
-    }
-  ]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 2. Fetch và Map dữ liệu
+  useEffect(() => {
+    api.get('/user/alluser')
+      .then(res => {
+        const mapped = res.data.map(u => ({
+          ...u,
+          phone: u.phoneNumber || 'N/A', 
+          userType: u.accounttype ? u.accounttype.toLowerCase() : 'buyer',
+          status: u.status || 'active'
+        }));
+        setUsers(mapped);
+      })
+      .catch(err => console.error("Lỗi fetch user:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const [shops, setShops] = useState([
     {

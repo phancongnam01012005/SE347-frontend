@@ -148,9 +148,8 @@ export function ProductDetailPage({
                 <div className="grid grid-cols-4 gap-2">
                   <div
                     onClick={() => setSelectedImage(product.image)}
-                    className={`aspect-square rounded-lg overflow-hidden border-2 cursor-pointer ${
-                      selectedImage === product.image ? 'border-[#EE4D2D]' : 'border-gray-200'
-                    }`}
+                    className={`aspect-square rounded-lg overflow-hidden border-2 cursor-pointer ${selectedImage === product.image ? 'border-[#EE4D2D]' : 'border-gray-200'
+                      }`}
                   >
                     <ImageWithFallback
                       src={product.image}
@@ -168,7 +167,7 @@ export function ProductDetailPage({
                     <Badge className="mb-2">{product.tag}</Badge>
                   )}
                   <h1 className="text-2xl mb-2">{product.name}</h1>
-                  
+
                   {/* Rating */}
                   <div className="flex items-center gap-4 mb-4">
                     <div className="flex items-center gap-1">
@@ -336,11 +335,10 @@ export function ProductDetailPage({
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-5 h-5 ${
-                          i < Math.floor(product.rating)
+                        className={`w-5 h-5 ${i < Math.floor(product.rating)
                             ? 'fill-yellow-400 text-yellow-400'
                             : 'text-gray-300'
-                        }`}
+                          }`}
                       />
                     ))}
                   </div>
@@ -391,11 +389,10 @@ export function ProductDetailPage({
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-3 h-3 ${
-                                  i < review.rating
+                                className={`w-3 h-3 ${i < review.rating
                                     ? 'fill-yellow-400 text-yellow-400'
                                     : 'text-gray-300'
-                                }`}
+                                  }`}
                               />
                             ))}
                           </div>
@@ -442,9 +439,8 @@ export function ProductDetailPage({
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-3 h-3 cursor-pointer ${
-                                i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                              }`}
+                              className={`w-3 h-3 cursor-pointer ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                                }`}
                               onClick={() => setRating(i + 1)}
                             />
                           ))}

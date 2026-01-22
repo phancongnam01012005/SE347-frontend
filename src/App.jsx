@@ -1,7 +1,8 @@
-import { useState , useEffect} from "react";
+import { useState , useEffect ,useCallback} from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"; 
 import api from "./service/api";
 import { jwtDecode } from "jwt-decode";
+
 // Layout
 import { MainLayout } from "./layouts/MainLayout";
 
@@ -12,6 +13,8 @@ import { ProductDetailPageWrapper } from "./pages/ProductDetailPageWrapper";
 import { ShopsPage } from "./pages/ShopsPage";
 import { ShopDetailPageWrapper } from "./pages/ShopDetailPageWrapper";
 import { AdminPageWrapper } from "./pages/AdminPageWrapper";
+// LƯU Ý: Kiểm tra lại đường dẫn này xem file nằm trong "pages" hay "components/page"
+import { OAuth2RedirectHandler } from "./components/page/OAuth2RedirectHandler"; 
 
 // Modal components
 import { 
@@ -22,9 +25,7 @@ import {
   LoginModal,
   PolicyModal,
   TermsModal,
-  OrderSuccessModal
-} from "./components/modal";
-import { 
+  OrderSuccessModal,
   CheckoutModal, 
   PaymentModal, 
   RegisterModal, 
@@ -48,7 +49,7 @@ import { toast } from "sonner";
 function AppContent() {
   
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Có thể dùng state này để hiện Loading toàn trang nếu muốn
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -86,83 +87,91 @@ function AppContent() {
   const [favoriteProductIds, setFavoriteProductIds] = useState([]);
   const [favoriteShopIds, setFavoriteShopIds] = useState([]);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
-// Thêm vào cùng nhóm với các useState khác
-  const [products, setProducts] = useState([]);
   
-  useEffect(() => {
-  const initializeAuth = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      try {
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        const decoded = jwtDecode(token);
-        const userRes = await api.get("/user");
-        const u = userRes.data;
+  const [products, setProducts] = useState([]);
 
-        setCurrentUser({
-          id: decoded.userId,
-          name: u.name,
-          email: u.email,
-          phone: u.phone,
-          userType: decoded.role?.toLowerCase(),
-          addresses: u.addresses || [],
-        });
-        setIsLoggedIn(true);
-      } catch (err) {
-        console.error("Token invalid", err);
-        localStorage.removeItem("accessToken");
+  // --- PHẦN LOGIC AUTHENTICATION ---
+
+  // 1. Hàm Helper: Lấy thông tin user từ Token (Dùng chung)
+  const fetchUserData = async (token) => {
+    // Gắn token vào Header ngay lập tức
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    
+    const decoded = jwtDecode(token);
+    const userRes = await api.get("/user");
+    const u = userRes.data;
+
+    return {
+      id: decoded.userId,
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      userType: decoded.role?.toLowerCase(),
+      addresses: u.addresses || [],
+    };
+  };
+
+  // 2. useEffect: Kiểm tra đăng nhập khi F5 trang
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        try {
+          const userData = await fetchUserData(token); 
+          setCurrentUser(userData);
+          setIsLoggedIn(true);
+        } catch (err) {
+          console.error("Token invalid", err);
+          localStorage.removeItem("accessToken");
+        }
       }
-    }
-    setIsLoading(false); // Chốt trạng thái sau khi check xong
-  };
-  initializeAuth();
+      setIsLoading(false);
+    };
+    initializeAuth();
+  }, []);
+
+  // 3. Hàm xử lý khi Login Google thành công (Truyền cho OAuth2RedirectHandler)
+  const handleOAuthLoginSuccess = useCallback(async (token) => {
+  try {
+    const userData = await fetchUserData(token);
+    setCurrentUser(userData);
+    setIsLoggedIn(true);
+    
+    // Chỉ hiển thị toast nếu user chưa đăng nhập trước đó
+    toast.success("Đăng nhập Google thành công! 🎉", { id: 'auth-success' });
+  } catch (err) {
+    console.error("Lỗi xác thực Google:", err);
+    toast.error("Không thể lấy thông tin tài khoản Google");
+  }
 }, []);
-//   useEffect(() => {
-//   const fetchProducts = async () => {
-//     try {
-//       const res = await api.get("/public/product/all");
-//       const mappedProducts = res.data.map((p) => ({
-//         id: p.productId,
-//         name: p.productName,
-//         price: p.price,
-//         image: p.image_url,
-//         shopId: p.shopId,
-//         shopName: p.shopName,
-//       }));
 
-//       setProducts(mappedProducts);
-//     } catch (err) {
-//       console.error("Load sản phẩm fail:", err);
-//       toast.error("Không tải được danh sách sản phẩm");
-//     }
-//   };
+  // --- KẾT THÚC PHẦN LOGIC AUTHENTICATION ---
 
-//   fetchProducts();
-  // }, []);
   useEffect(() => {
-  const fetchProducts = async () => {
-    try {
-      const res = await api.get("/public/product/all");
+    const fetchProducts = async () => {
+      try {
+        const res = await api.get("/public/product/all");
 
-      const mappedProducts = res.data.map((p) => ({
-        id: p.productId,
-        name: p.productName,
-        price: p.price,
-        image: p.image_url,
-        shopId: p.shopId,
-        shopName: p.shopName,
-        category: p.categoryName, // nếu BE có
-      }));
+        const mappedProducts = res.data.map((p) => ({
+          id: p.productId,
+          name: p.productName,
+          price: p.price,
+          image: p.image_url,
+          shopId: p.shopId,
+          shopName: p.shopName,
+          category: p.categoryName, 
+        }));
 
-      setProducts(mappedProducts);
-    } catch (err) {
-      console.error("Load sản phẩm fail:", err);
-      toast.error("Không tải được danh sách sản phẩm");
-    }
-  };
+        setProducts(mappedProducts);
+      } catch (err) {
+        console.error("Load sản phẩm fail:", err);
+        toast.error("Không tải được danh sách sản phẩm");
+      }
+    };
 
-  fetchProducts();
-}, []);
+    fetchProducts();
+  }, []);
+
   const calculateTotal = () => {
     const subtotal = cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -233,42 +242,42 @@ function AppContent() {
   };
 
   const handleConfirmOrder = async (orderData) => {
-  try {
-    const orderRequest = {
-      userId: currentUser.id,
-      shippingAddress: orderData.shippingAddress,
-      items: orderData.items
-    };
+    try {
+      const orderRequest = {
+        userId: currentUser.id,
+        shippingAddress: orderData.shippingAddress,
+        items: orderData.items
+      };
 
-    const orderResponse = await api.post(
-      "/order/create-new-order",
-      orderRequest
-    );
+      const orderResponse = await api.post(
+        "/order/create-new-order",
+        orderRequest
+      );
 
-    const { orderId } = orderResponse.data;
+      const { orderId } = orderResponse.data;
 
-    // MOMO
-    if (orderData.paymentMethod === "momo") {
-      const paymentResponse = await api.post("/public/api/payment/momo", {
-        orderId,
-        amount: calculateTotal(),
-      });
+      // MOMO
+      if (orderData.paymentMethod === "momo") {
+        const paymentResponse = await api.post("/public/api/payment/momo", {
+          orderId,
+          amount: calculateTotal(),
+        });
 
+        setCartItems([]);
+        window.location.href = paymentResponse.data.payUrl;
+        return;
+      }
+
+      // COD
       setCartItems([]);
-      window.location.href = paymentResponse.data.payUrl;
-      return;
+      setIsCheckoutOpen(false);
+      setIsOrderSuccessOpen(true);
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Có lỗi khi tạo đơn");
     }
-
-    // COD
-    setCartItems([]);
-    setIsCheckoutOpen(false);
-    setIsOrderSuccessOpen(true);
-
-  } catch (err) {
-    console.error(err);
-    toast.error("Có lỗi khi tạo đơn");
-  }
-};
+  };
   
   const handlePaymentSuccess = () => {
     const newOrder = {
@@ -295,94 +304,88 @@ function AppContent() {
   };
   
 
-const handleLogin = async (email, password) => {
-  try {
-    const res = await api.post("/public/login", { email, password });
-    const { token } = res.data;
+  const handleLogin = async (email, password) => {
+    try {
+      const res = await api.post("/public/login", { email, password });
+      const { token } = res.data;
 
-    // 1. Lưu token và set Header
-    localStorage.setItem("accessToken", token);
-    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      // 1. Lưu token và set Header
+      localStorage.setItem("accessToken", token);
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-    // 2. Giải mã token để lấy userId
-    const decoded = jwtDecode(token);
-    
-    // Lưu ý: Tên field phải khớp với claim("userId", userId) ở Java
-    const userIdFromToken = decoded.userId; 
-    const roleFromToken = decoded.role;
+      // 2. Giải mã token để lấy userId
+      const decoded = jwtDecode(token);
+      
+      const userIdFromToken = decoded.userId; 
+      const roleFromToken = decoded.role;
 
-    // 3. Lấy thông tin chi tiết khác từ API /user
-    const userRes = await api.get("/user");
-    const u = userRes.data;
+      // 3. Lấy thông tin chi tiết khác từ API /user
+      const userRes = await api.get("/user");
+      const u = userRes.data;
 
-    setCurrentUser({
-      id: userIdFromToken, // Lấy trực tiếp từ token
-      name: u.name,
-      email: u.email,
-      phone: u.phone,
-      userType: roleFromToken?.toLowerCase(), // Lấy role từ token
-      addresses: u.addresses || [],
-    });
+      setCurrentUser({
+        id: userIdFromToken,
+        name: u.name,
+        email: u.email,
+        phone: u.phone,
+        userType: roleFromToken?.toLowerCase(),
+        addresses: u.addresses || [],
+      });
+      
       setIsLoggedIn(true);
       setIsLoginOpen(false);
-    if (roleFromToken?.toLowerCase() === 'admin')
-    {
-      navigate("/admin");
-      toast.success("Hello admin");
-      return;
+      
+      if (roleFromToken?.toLowerCase() === 'admin') {
+        navigate("/admin");
+        toast.success("Hello admin");
+        return;
+      }
+
+      toast.success(`Xin chào ${roleFromToken?.toLowerCase()} 👋`);
+
+    } catch (err) {
+      console.error("Login error:", err);
+      toast.error("Sai email hoặc mật khẩu");
     }
+  };
 
-    toast.success(`Xin chào ${roleFromToken?.toLowerCase()} 👋`);
+  const handleRegister = async (name, email, phone, password, userType) => {
+    try {
+      const newUser = {
+        name,
+        email,
+        password,
+        phone,
+        accountType: userType.charAt(0).toUpperCase() + userType.slice(1),
+      };
 
-  } catch (err) {
-    console.error("Login error:", err);
-    toast.error("Sai email hoặc mật khẩu");
-  }
-};
-const handleRegister = async (name, email, phone, password, userType) => {
-  try {
-    // 1. Chuẩn hóa dữ liệu gửi đi
-    const newUser = {
-      name,
-      email,
-      password,
-      phone,
-      accountType: userType.charAt(0).toUpperCase() + userType.slice(1),
-    };
+      await api.post("public/register", newUser);
 
-    // 2. Gọi API đăng ký
-    await api.post("public/register", newUser);
+      toast.success("Đăng ký thành công! Đang đăng nhập...");
+      await handleLogin(email, password); 
+      
+      setIsRegisterOpen(false);
 
-    // 3. THAY VÌ set state thủ công, hãy gọi hàm login đã viết sẵn
-    // Điều này giúp lấy Token, giải mã Role và ID chuẩn xác nhất
-    toast.success("Đăng ký thành công! Đang đăng nhập...");
-    await handleLogin(email, password); 
-    
-    setIsRegisterOpen(false);
-
-  } catch (err) {
-    console.error("Register error:", err);
-    const errorMsg = err.response?.data?.message || "Đăng ký thất bại";
-    toast.error(errorMsg);
-  }
-};
+    } catch (err) {
+      console.error("Register error:", err);
+      const errorMsg = err.response?.data?.message || "Đăng ký thất bại";
+      toast.error(errorMsg);
+    }
+  };
   
   const handleLogout = () => {
-  // 1. Xóa dấu vết đăng nhập
-  localStorage.removeItem("accessToken");
-  delete api.defaults.headers.common["Authorization"];
-  
-  // 2. Reset states
-  setCurrentUser(null);
-  setIsLoggedIn(false);
-  setUserOrders([]);
-  setUserReports([]);
-  
-  // 3. Điều hướng về trang chủ
-  setIsProfileOpen(false);
-  navigate('/');
-  toast.success('Đã đăng xuất thành công');
-};
+    localStorage.removeItem("accessToken");
+    delete api.defaults.headers.common["Authorization"];
+    
+    setCurrentUser(null);
+    setIsLoggedIn(false);
+    setUserOrders([]);
+    setUserReports([]);
+    
+    setIsProfileOpen(false);
+    navigate('/');
+    toast.success('Đã đăng xuất thành công');
+  };
   
   const handleUpdateProfile = (updatedUser) => {
     if (currentUser) {
@@ -392,7 +395,6 @@ const handleRegister = async (name, email, phone, password, userType) => {
   };
 
   const handleAddProduct = (product) => {
-    const newProduct = { ...product, id: `seller-${Date.now()}` };
     toast.success(`Sản phẩm "${product.name}" đã được đăng ký thành công!`, {
       description: 'Sản phẩm của bạn đang chờ duyệt và sẽ xuất hiện trên nền tảng sau khi được phê duyệt.',
       duration: 5000
@@ -500,6 +502,12 @@ const handleRegister = async (name, email, phone, password, userType) => {
                 <Route path="/product/:id" element={<ProductDetailPageWrapper onAddToCart={handleAddToCart} onToggleFavorite={handleToggleProductFavorite} favoriteProductIds={favoriteProductIds} isBuyer={isBuyer} isLoggedIn={isLoggedIn} />} />
                 <Route path="/shops" element={<ShopsPage shops={shops} cartItemsCount={cartItemsCount} onCartClick={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} currentUser={currentUser} onLoginClick={() => setIsLoginOpen(true)} onRegisterClick={() => setIsRegisterOpen(true)} onProfileClick={() => setIsProfileOpen(true)} onLogout={handleLogout} onFavoritesClick={() => setIsFavoritesOpen(true)} favoritesCount={isBuyer ? favoritesCount : 0} onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)} onAddressClick={() => setIsAddressModalOpen(true)} onOrdersClick={() => setIsOrdersModalOpen(true)} onReportsClick={() => setIsReportsModalOpen(true)} onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)} onSellerProductsClick={() => setIsSellerProductsModalOpen(true)} onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)} onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)} onAboutClick={() => setIsAboutModalOpen(true)} onContactClick={() => setIsContactModalOpen(true)} onPolicyClick={() => setIsPolicyModalOpen(true)} onTermsClick={() => setIsTermsModalOpen(true)} />} />
                 <Route path="/shop/:id" element={<ShopDetailPageWrapper onAddToCart={handleAddToCart} onToggleFavorite={handleToggleShopFavorite} favoriteShopIds={favoriteShopIds} isBuyer={isBuyer} favoriteProductIds={favoriteProductIds} onToggleProductFavorite={handleToggleProductFavorite} cartItemsCount={cartItemsCount} onCartClick={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} currentUser={currentUser} onLoginClick={() => setIsLoginOpen(true)} onRegisterClick={() => setIsRegisterOpen(true)} onProfileClick={() => setIsProfileOpen(true)} onLogout={handleLogout} onCategoryClick={() => navigate('/products')} onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)} onFavoritesClick={() => setIsFavoritesOpen(true)} favoritesCount={isBuyer ? favoritesCount : 0} onAddressClick={() => setIsAddressModalOpen(true)} onOrdersClick={() => setIsOrdersModalOpen(true)} onReportsClick={() => setIsReportsModalOpen(true)} onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)} onSellerProductsClick={() => setIsSellerProductsModalOpen(true)} onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)} onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)} onAboutClick={() => setIsAboutModalOpen(true)} onContactClick={() => setIsContactModalOpen(true)} onPolicyClick={() => setIsPolicyModalOpen(true)} onTermsClick={() => setIsTermsModalOpen(true)} />} />
+                
+                {/* Đã sửa phần này: Xóa text thừa và đảm bảo Route hoạt động */}
+                <Route 
+                  path="/oauth2/success" 
+                  element={<OAuth2RedirectHandler onLoginSuccess={handleOAuthLoginSuccess} />} 
+                />
               </Routes>
             </MainLayout>
           }
