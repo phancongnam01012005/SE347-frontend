@@ -52,7 +52,6 @@ export function Header({
   onAddressClick,
   onOrdersClick,
   onReportsClick,
-  onSellerOrdersClick,
   onSellerProductsClick,
   onSellerStatisticsClick,
   onSellerPromotionsClick,
@@ -162,12 +161,6 @@ export function Header({
                   {/* Seller Menu */}
                   {userType === "seller" && (
                     <>
-                      <DropdownMenuItem
-                        onClick={onSellerOrdersClick}
-                      >
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Quản lý đơn hàng
-                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={onSellerProductsClick}
                       >

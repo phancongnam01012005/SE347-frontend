@@ -13,7 +13,6 @@ export { PaymentModal } from './PaymentModal';
 export { ReportsModal } from './ReportsModal';
 export { UserProfileModal } from './UserProfileModal';
 export { CheckoutModal } from './CheckoutModal';
-export { SellerOrdersModal } from './SellerOrdersModal';
 export { SellerProductsModal } from './SellerProductsModal';
 export { SellerStatisticsModal } from './SellerStatisticsModal';
 export { SellerPromotionsModal } from './SellerPromotionsModal';

@@ -13,7 +13,6 @@ export function Footer({
   onCartClick,
   onOrdersClick,
   onFavoritesClick,
-  onSellerOrdersClick,
   onSellerProductsClick,
   onSellerStatisticsClick,
   onSellerPromotionsClick,
@@ -120,8 +119,7 @@ export function Footer({
             <h4 className="font-bold text-[#EE4D2D] mb-4">
               Đối tác
             </h4>
-            <ul className="space-y-4">
-              <li><button onClick={() => handleSellerAction(onSellerOrdersClick, 'Quản lý đơn hàng')} className="text-sm text-muted-foreground hover:text-[#EE4D2D] transition-colors">Kênh người bán</button></li>
+            <ul className="space-y-4">        
               <li><button onClick={() => handleSellerAction(onSellerProductsClick, 'Quản lý món ăn')} className="text-sm text-muted-foreground hover:text-[#EE4D2D] transition-colors">Thực đơn của quán</button></li>
               <li><button onClick={() => handleSellerAction(onSellerStatisticsClick, 'Thống kê doanh thu')} className="text-sm text-muted-foreground hover:text-[#EE4D2D] transition-colors">Báo cáo doanh thu</button></li>
               <li><button onClick={() => handleSellerAction(onSellerPromotionsClick, 'Khuyến mãi')} className="text-sm text-muted-foreground hover:text-[#EE4D2D] transition-colors">Chính sách khuyến mãi</button></li>
