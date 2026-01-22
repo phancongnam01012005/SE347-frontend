@@ -43,7 +43,7 @@ import api from '../../service/api';
 export function AdminPage({ currentUser, onLogout }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [shops, setShops] = useState([]);
   // 2. Fetch và Map dữ liệu
   useEffect(() => {
     api.get('/user/alluser')
@@ -60,54 +60,46 @@ export function AdminPage({ currentUser, onLogout }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const [shops, setShops] = useState([
-    {
-      id: '1',
-      name: 'Bánh Mì Huỳnh Hoa',
-      rating: 4.8,
-      reviews: 1234,
-      image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300&h=200&fit=crop',
-      address: '26 Lê Thị Riêng, Q1, TP.HCM',
-      verified: true,
-      trending: true,
-      mall: true,
-      fastShipping: true,
-      topShop: false,
-      isNew: false,
-      hidden: false
-    },
-    {
-      id: '2',
-      name: 'Phở Hòa Pasteur',
-      rating: 4.7,
-      reviews: 892,
-      image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=300&h=200&fit=crop',
-      address: '260C Pasteur, Q3, TP.HCM',
-      verified: false,
-      trending: false,
-      mall: false,
-      fastShipping: false,
-      topShop: true,
-      isNew: false,
-      hidden: false
-    },
-    {
-      id: '3',
-      name: 'Cơm Tấm Sướn Bì',
-      rating: 4.6,
-      reviews: 567,
-      image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=300&h=200&fit=crop',
-      address: '123 Nguyễn Trãi, Q5, TP.HCM',
-      verified: true,
-      trending: false,
-      mall: false,
-      fastShipping: false,
-      topShop: false,
-      isNew: true,
-      hidden: false
-    }
-  ]);
+useEffect(() => {
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [userRes, shopRes] = await Promise.all([
+        api.get('/user/alluser'),
+        api.get('/public/shop/allshop')
+      ]);
 
+      // Xử lý User
+      const mappedUsers = userRes.data.map(u => ({
+        ...u,
+        id: u.userId || u.id, // Đảm bảo đồng nhất ID
+        phone: u.phoneNumber || 'N/A',
+        userType: u.accounttype?.toLowerCase() || 'buyer',
+        status: u.status || 'active'
+      }));
+
+      // Xử lý Shop
+      const mappedShops = shopRes.data.map(s => ({
+        ...s,
+        id: s.shopId,
+        image: s.logo || 'https://images.unsplash.com/photo-1517248135467-4c7ed9d874b7?w=300',
+        rating: 5.0, // Mặc định nếu BE chưa có
+        verified: false,
+        hidden: false
+      }));
+
+      setUsers(mappedUsers);
+      setShops(mappedShops);
+    } catch (err) {
+      console.error("Lỗi tải dữ liệu hệ thống:", err);
+      // Bạn nên có một thông báo Toast ở đây
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
   const [products, setProducts] = useState([
     {
       id: '1',

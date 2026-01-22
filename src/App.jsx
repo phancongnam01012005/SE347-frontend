@@ -89,7 +89,7 @@ function AppContent() {
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   
   const [products, setProducts] = useState([]);
-
+  const [isAuthenticating, setIsAuthenticating] = useState(true); 
   // --- PHẦN LOGIC AUTHENTICATION ---
 
   // 1. Hàm Helper: Lấy thông tin user từ Token (Dùng chung)
@@ -120,6 +120,10 @@ function AppContent() {
           const userData = await fetchUserData(token); 
           setCurrentUser(userData);
           setIsLoggedIn(true);
+          if (userData.userType === 'admin')
+          {
+            navigate("/admin");
+          }
         } catch (err) {
           console.error("Token invalid", err);
           localStorage.removeItem("accessToken");
@@ -147,30 +151,25 @@ function AppContent() {
 
   // --- KẾT THÚC PHẦN LOGIC AUTHENTICATION ---
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await api.get("/public/product/all");
-
-        const mappedProducts = res.data.map((p) => ({
-          id: p.productId,
-          name: p.productName,
-          price: p.price,
-          image: p.image_url,
-          shopId: p.shopId,
-          shopName: p.shopName,
-          category: p.categoryName, 
-        }));
-
-        setProducts(mappedProducts);
-      } catch (err) {
-        console.error("Load sản phẩm fail:", err);
-        toast.error("Không tải được danh sách sản phẩm");
-      }
-    };
-
-    fetchProducts();
-  }, []);
+  // useEffect(() => {
+  //   const initializeAuth = async () => {
+  //     const token = localStorage.getItem("accessToken");
+  //     if (token) {
+  //       try {
+  //         const userData = await fetchUserData(token); 
+  //         setCurrentUser(userData);
+  //         setIsLoggedIn(true);
+  //         // if(userData.userType.==='admin')
+  //       } catch (err) {
+  //         console.error("Token invalid", err);
+  //         localStorage.removeItem("accessToken");
+  //         delete api.defaults.headers.common["Authorization"];
+  //       }
+  //     }
+  //     setIsLoading(false); 
+  //   };
+  //   initializeAuth();
+  // }, []);
 
   const calculateTotal = () => {
     const subtotal = cartItems.reduce(
@@ -502,7 +501,6 @@ function AppContent() {
                 <Route path="/product/:id" element={<ProductDetailPageWrapper onAddToCart={handleAddToCart} onToggleFavorite={handleToggleProductFavorite} favoriteProductIds={favoriteProductIds} isBuyer={isBuyer} isLoggedIn={isLoggedIn} />} />
                 <Route path="/shops" element={<ShopsPage shops={shops} cartItemsCount={cartItemsCount} onCartClick={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} currentUser={currentUser} onLoginClick={() => setIsLoginOpen(true)} onRegisterClick={() => setIsRegisterOpen(true)} onProfileClick={() => setIsProfileOpen(true)} onLogout={handleLogout} onFavoritesClick={() => setIsFavoritesOpen(true)} favoritesCount={isBuyer ? favoritesCount : 0} onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)} onAddressClick={() => setIsAddressModalOpen(true)} onOrdersClick={() => setIsOrdersModalOpen(true)} onReportsClick={() => setIsReportsModalOpen(true)} onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)} onSellerProductsClick={() => setIsSellerProductsModalOpen(true)} onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)} onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)} onAboutClick={() => setIsAboutModalOpen(true)} onContactClick={() => setIsContactModalOpen(true)} onPolicyClick={() => setIsPolicyModalOpen(true)} onTermsClick={() => setIsTermsModalOpen(true)} />} />
                 <Route path="/shop/:id" element={<ShopDetailPageWrapper onAddToCart={handleAddToCart} onToggleFavorite={handleToggleShopFavorite} favoriteShopIds={favoriteShopIds} isBuyer={isBuyer} favoriteProductIds={favoriteProductIds} onToggleProductFavorite={handleToggleProductFavorite} cartItemsCount={cartItemsCount} onCartClick={() => setIsCartOpen(true)} isLoggedIn={isLoggedIn} currentUser={currentUser} onLoginClick={() => setIsLoginOpen(true)} onRegisterClick={() => setIsRegisterOpen(true)} onProfileClick={() => setIsProfileOpen(true)} onLogout={handleLogout} onCategoryClick={() => navigate('/products')} onSellerDashboardClick={() => setIsSellerProductsModalOpen(true)} onFavoritesClick={() => setIsFavoritesOpen(true)} favoritesCount={isBuyer ? favoritesCount : 0} onAddressClick={() => setIsAddressModalOpen(true)} onOrdersClick={() => setIsOrdersModalOpen(true)} onReportsClick={() => setIsReportsModalOpen(true)} onSellerOrdersClick={() => setIsSellerOrdersModalOpen(true)} onSellerProductsClick={() => setIsSellerProductsModalOpen(true)} onSellerStatisticsClick={() => setIsSellerStatisticsModalOpen(true)} onSellerPromotionsClick={() => setIsSellerPromotionsModalOpen(true)} onAboutClick={() => setIsAboutModalOpen(true)} onContactClick={() => setIsContactModalOpen(true)} onPolicyClick={() => setIsPolicyModalOpen(true)} onTermsClick={() => setIsTermsModalOpen(true)} />} />
-                
                 {/* Đã sửa phần này: Xóa text thừa và đảm bảo Route hoạt động */}
                 <Route 
                   path="/oauth2/success" 
