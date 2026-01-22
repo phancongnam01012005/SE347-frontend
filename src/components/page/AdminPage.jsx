@@ -42,72 +42,73 @@ import api from '../../service/api';
 
 export function AdminPage({ currentUser, onLogout }) {
   const [users, setUsers] = useState([]);
+  const [shops, setShops] = useState([]);
+  // const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // 2. Fetch và Map dữ liệu
   useEffect(() => {
-    api.get('/user/alluser')
-      .then(res => {
-        const mapped = res.data.map(u => ({
-          ...u,
-          phone: u.phoneNumber || 'N/A', 
-          userType: u.accounttype ? u.accounttype.toLowerCase() : 'buyer',
-          status: u.status || 'active'
-        }));
-        setUsers(mapped);
-      })
-      .catch(err => console.error("Lỗi fetch user:", err))
-      .finally(() => setLoading(false));
-  }, []);
+  setLoading(true);
+  
+  // Chạy song song cả 3 API
+  Promise.all([
+    api.get('/user/alluser'),
+    api.get('/public/shop/allshop'),    // Giả định endpoint của bạn
+    api.get('/public/product/all') // Giả định endpoint của bạn
+  ])
+    .then(([userRes, shopRes, productRes]) => {
+      // 1. Map Users
+      const mappedUsers = userRes.data.map(u => ({
+        ...u,
+        phone: u.phoneNumber || 'N/A',
+        userType: u.accounttype ? u.accounttype.toLowerCase() : 'buyer',
+        status: u.status || 'active'
+      }));
+      setUsers(mappedUsers);
 
-  const [shops, setShops] = useState([
-    {
-      id: '1',
-      name: 'Bánh Mì Huỳnh Hoa',
-      rating: 4.8,
-      reviews: 1234,
-      image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300&h=200&fit=crop',
-      address: '26 Lê Thị Riêng, Q1, TP.HCM',
-      verified: true,
-      trending: true,
-      mall: true,
-      fastShipping: true,
-      topShop: false,
-      isNew: false,
-      hidden: false
-    },
-    {
-      id: '2',
-      name: 'Phở Hòa Pasteur',
-      rating: 4.7,
-      reviews: 892,
-      image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=300&h=200&fit=crop',
-      address: '260C Pasteur, Q3, TP.HCM',
-      verified: false,
-      trending: false,
-      mall: false,
-      fastShipping: false,
-      topShop: true,
-      isNew: false,
-      hidden: false
-    },
-    {
-      id: '3',
-      name: 'Cơm Tấm Sướn Bì',
-      rating: 4.6,
-      reviews: 567,
-      image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=300&h=200&fit=crop',
-      address: '123 Nguyễn Trãi, Q5, TP.HCM',
-      verified: true,
-      trending: false,
-      mall: false,
-      fastShipping: false,
-      topShop: false,
-      isNew: true,
-      hidden: false
-    }
-  ]);
+      // 2. Map Shops (Chỉnh sửa key theo API thực tế của bạn)
+      const mappedShops = shopRes.data.map(s => ({
+        id: s.shopId || s.id,
+        name: s.shopName || s.name,
+        rating: s.rating || 5.0,
+        reviews: s.reviewsCount || 0,
+        image: s.logo || 'https://via.placeholder.com/300',
+        address: s.address || 'Chưa cập nhật',
+        verified: s.isVerified || false,
+        trending: s.isTrending || false,
+        mall: s.isMall || false,
+        fastShipping: s.fastShipping || false,
+        topShop: s.isTopShop || false,
+        isNew: s.isNew || false,
+        hidden: s.isHidden || false
+      }));
+      setShops(mappedShops);
 
+      // 3. Map Products
+      const mappedProducts = productRes.data.map(p => ({
+        id: p.productId || p.id,
+        name: p.productName || p.name,
+        price: p.price || 0,
+        image: p.image_url || p.image,
+        rating: p.rating || 5.0,
+        sold: p.soldCount || 0,
+        shopId: p.shopId,
+        category: p.categoryName || p.category,
+        hidden: p.isHidden || false,
+        // Các thuộc tính badge khác
+        hot: p.isHot || false,
+        trending: p.isTrending || false,
+        newArrival: p.isNew || false
+      }));
+      setProducts(mappedProducts);
+    })
+    .catch(err => {
+      console.error("Lỗi tải dữ liệu hệ thống:", err);
+    })
+    .finally(() => setLoading(false));
+}, []);
+
+  
   const [products, setProducts] = useState([
     {
       id: '1',

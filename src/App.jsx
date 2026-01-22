@@ -120,6 +120,10 @@ function AppContent() {
           const userData = await fetchUserData(token); 
           setCurrentUser(userData);
           setIsLoggedIn(true);
+          if (userData.userType === 'admin')
+          {
+            navigate("/admin")
+          }
         } catch (err) {
           console.error("Token invalid", err);
           localStorage.removeItem("accessToken");
@@ -137,6 +141,10 @@ function AppContent() {
     setCurrentUser(userData);
     setIsLoggedIn(true);
     
+    if (userData.userType === 'admin')
+    {
+      navigate("/admin")
+    }
     // Chỉ hiển thị toast nếu user chưa đăng nhập trước đó
     toast.success("Đăng nhập Google thành công! 🎉", { id: 'auth-success' });
   } catch (err) {
